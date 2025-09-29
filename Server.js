@@ -9,8 +9,8 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
-// Static files সার্ভ করুন - current directory থেকে
-app.use(express.static(path.join(__dirname, '.')));
+// Static files সার্ভ করুন - Render এর environment এর জন্য
+app.use(express.static(__dirname));
 
 // Socket.IO setup
 const io = new Server(server, {
@@ -19,6 +19,12 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+
+// Root route যোগ করুন
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 
 // Simple in-memory maps: id -> socketId, socketId -> id
 const idToSocket = new Map();

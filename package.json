@@ -12,6 +12,6 @@
     "socket.io": "^4.7.5"
   },
   "keywords": ["chess", "multiplayer", "game"],
-  "author": "Your Name",
+  "author": "Robiul Hasan",
   "license": "MIT"
 }
