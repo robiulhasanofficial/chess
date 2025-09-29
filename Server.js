@@ -4,16 +4,12 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 
-// Static files সার্ভ করুন
+// Static files সার্ভ করুন - current directory থেকে
 app.use(express.static(path.join(__dirname, '.')));
 
 // Socket.IO setup
@@ -23,11 +19,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
-
-// ... বাকি কোড ...
-
-// Optional: serve a `public` folder so you can host client files from the same server
-app.use(express.static('public'));
 
 // Simple in-memory maps: id -> socketId, socketId -> id
 const idToSocket = new Map();

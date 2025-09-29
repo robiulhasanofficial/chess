@@ -112,21 +112,21 @@
   </div>
 </div>
 
-<!-- Winner modal -->
-  <div id="winnerModal" aria-hidden="true">
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,18,0.6),rgba(2,6,23,0.85));backdrop-filter:blur(6px);"></div>
-    <div class="modalBox">
-      <h2 id="winnerText" style="margin:6px 0 10px 0;font-size:20px;">অভিনন্দন!</h2>
-      <p id="winnerSub" style="margin:0 0 18px 0;opacity:0.9">খুব সুন্দর — আপনি জিতেছেন। একটা আরেকটি গেম খেলবেন?</p>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button id="playAgainBtn" class="primary" style="padding:10px 16px;border-radius:10px;">আরেকটি গেম খেলুন</button>
-        <button id="closeModalBtn" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);">বাতিল</button>
-      </div>
+<!-- Winner modal - FIXED: aria-hidden and display sync -->
+<div id="winnerModal" aria-hidden="true" style="display: none;">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,18,0.6),rgba(2,6,23,0.85));backdrop-filter:blur(6px);"></div>
+  <div class="modalBox">
+    <h2 id="winnerText" style="margin:6px 0 10px 0;font-size:20px;">অভিনন্দন!</h2>
+    <p id="winnerSub" style="margin:0 0 18px 0;opacity:0.9">খুব সুন্দর — আপনি জিতেছেন। একটা আরেকটি গেম খেলবেন?</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="playAgainBtn" class="primary" style="padding:10px 16px;border-radius:10px;">আরেকটি গেম খেলুন</button>
+      <button id="closeModalBtn" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);">বাতিল</button>
     </div>
   </div>
+</div>
 
 <!-- Promotion modal -->
-<div id="promoModal" class="promoModal" role="dialog" aria-modal="true">
+<div id="promoModal" class="promoModal" role="dialog" aria-modal="true" style="display: none;">
   <div class="promoBox">
     <h3 id="promoTitle">Pawn promoted! কোন পিস নেবেন?</h3>
     <div class="promoGrid">
@@ -138,8 +138,9 @@
   </div>
 </div>
 
-<!-- socket.io client (only include if you use a Socket.IO server) -->
+<!-- socket.io client - FIXED: Using CDN -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <!-- main game script -->
 <script src="script.js"></script>
 

@@ -375,12 +375,18 @@ function moveSelectedTo(r,c){
 function showPromotion(piece, fromR, fromC, toR, toC){
   const modal = document.getElementById('promoModal');
   modal.style.display='flex';
+  modal.setAttribute('aria-hidden', 'false');
+  
   const title = document.getElementById('promoTitle');
   title.textContent = 'Pawn promoted! কোন পিস নিতে চান?';
+  
   document.querySelectorAll('.promoBtn').forEach(b=>{
     b.onclick = ()=>{
       const p = b.dataset.piece;
-      piece.t = p; modal.style.display='none';
+      piece.t = p; 
+      modal.style.display='none';
+      modal.setAttribute('aria-hidden', 'true');
+      
       log(`Pawn promoted to ${nameFor(p)} at ${files[toC]}${ranks[toR]}`);
       render();
 
@@ -699,22 +705,56 @@ function init(){
   logArea.innerHTML=''; render(); 
 }
 
-/* ---------- Winner modal handling ---------- */
+/* ---------- Winner modal handling - FIXED: Accessibility issues ---------- */
 function showWinnerModal(winner, reason = null){
   const modal = document.getElementById('winnerModal');
   const text = document.getElementById('winnerText');
   const sub = document.getElementById('winnerSub');
-  if(winner==='Draw'){ text.textContent = 'ড্র'; sub.textContent = reason || 'গেম ড্র হয়েছে। আবার চেষ্টা করবেন?'; }
-  else { text.textContent = 'অভিনন্দন — ' + (winner==='White'? 'সাদা (White)':'কালো (Black)') + ' জিতেছে!'; sub.textContent = reason || 'আপনি কি আরেকটি গেম খেলতে চান?'; }
-  modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false');
+  
+  if(winner==='Draw'){ 
+    text.textContent = 'ড্র'; 
+    sub.textContent = reason || 'গেম ড্র হয়েছে। আবার চেষ্টা করবেন?'; 
+  } else { 
+    text.textContent = 'অভিনন্দন — ' + (winner==='White'? 'সাদা (White)':'কালো (Black)') + ' জিতেছে!'; 
+    sub.textContent = reason || 'আপনি কি আরেকটি গেম খেলতে চান?'; 
+  }
+  
+  modal.style.display = 'flex'; 
+  modal.setAttribute('aria-hidden','false');
   stopTimers();
 
-  document.getElementById('playAgainBtn').onclick = ()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); init(); };
-  document.getElementById('closeModalBtn').onclick = ()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); };
+  // Focus management for accessibility
+  setTimeout(() => {
+    document.getElementById('playAgainBtn').focus();
+  }, 100);
+
+  document.getElementById('playAgainBtn').onclick = ()=>{ 
+    modal.style.display='none'; 
+    modal.setAttribute('aria-hidden','true'); 
+    init(); 
+  };
+  
+  document.getElementById('closeModalBtn').onclick = ()=>{ 
+    modal.style.display='none'; 
+    modal.setAttribute('aria-hidden','true'); 
+  };
 }
 
 /* ---------- small helpers for accessibility ---------- */
-document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ const pm = document.getElementById('promoModal'); if(pm.style.display==='flex'){ pm.style.display='none'; } const wm = document.getElementById('winnerModal'); if(wm.style.display==='flex'){ wm.style.display='none'; } } });
+document.addEventListener('keydown',(e)=>{ 
+  if(e.key==='Escape'){ 
+    const pm = document.getElementById('promoModal'); 
+    if(pm.style.display==='flex'){ 
+      pm.style.display='none'; 
+      pm.setAttribute('aria-hidden','true');
+    } 
+    const wm = document.getElementById('winnerModal'); 
+    if(wm.style.display==='flex'){ 
+      wm.style.display='none'; 
+      wm.setAttribute('aria-hidden','true');
+    } 
+  } 
+});
 
 /* -------------------- Multiplayer helpers & socket handling -------------------- */
 function makeLocalId(len=6){
