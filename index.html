@@ -2,97 +2,63 @@
 <html lang="bn">
 <head>
   <meta charset="utf-8" />
+  <!-- keep viewport but don't disable user zoom for accessibility -->
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>কার্টুন দাবা — Animated Chess (HTML/CSS/JS) — Updated (Full rules)</title>
-  <style>
-    /* --- Reset & base --- */
-    :root{
-      --board-size: min(78vmin,720px);
-      --light:#e9d7c4;
-      --dark:#6b4f3a;
-      --accent:#ff7b8a;
-      --bg: linear-gradient(180deg,#0f172a 0%, #0b1220 60%);
-      --card:#0b1220;
-      --glass: rgba(255,255,255,0.06);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family: 'Inter', system-ui, -apple-system, 'Noto Sans Bengali', sans-serif;background:var(--bg);color:#eef2ff}
-    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
-
-    /* --- Game panel --- */
-    .panel{width:100%;max-width:1200px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:18px;border-radius:18px;box-shadow:0 10px 30px rgba(2,6,23,0.7);}
-    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .title{font-weight:700;font-size:20px}
-    .controls{display:flex;gap:8px;align-items:center}
-    button{background:var(--glass);color:#fff;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;cursor:pointer}
-    button.primary{background:linear-gradient(90deg,#ffb86b,#ff7b8a);color:#0b1220;border:none}
-
-    /* --- Board area --- */
-    .board-wrap{display:flex;gap:18px;align-items:flex-start}
-    .board{width:var(--board-size);height:var(--board-size);position:relative;border-radius:12px;overflow:hidden;padding:12px;background:linear-gradient(180deg,#1f2937, #111827);box-shadow:inset 0 8px 30px rgba(0,0,0,0.6)}
-    .grid{width:100%;height:100%;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:4px;position:relative}
-
-    .cell{position:relative;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:visible}
-    .cell.light{background:linear-gradient(180deg, #f7eedf 0%, #e8d7c3 100%)}
-    .cell.dark{background:linear-gradient(180deg, #7f5a44 0%, #644232 100%);box-shadow:inset 0 -6px 10px rgba(0,0,0,0.35)}
-
-    /* coordinate labels */
-    .coords{position:absolute;left:8px;bottom:6px;font-size:11px;color:rgba(255,255,255,0.45)}
-
-    /* piece style as cartoonish SVG container */
-    .piece{width:78%;height:78%;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:transform 240ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms}
-    .piece:active{transform:scale(0.96)}
-    .piece .svgwrap{width:100%;height:100%;filter:drop-shadow(0 6px 12px rgba(2,6,23,0.6))}
-
-    /* highlighting */
-    .cell.highlight{outline:3px solid rgba(255,255,255,0.08);box-shadow:0 6px 20px rgba(0,0,0,0.5) inset}
-    .cell.move-target::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.6);opacity:0.9}
-    .cell.capture-target::after{content:'';position:absolute;left:6px;top:6px;right:6px;bottom:6px;border-radius:8px;border:3px dashed rgba(255,120,120,0.9);}
-    .cell.check{box-shadow:0 0 0 4px rgba(255,50,50,0.22) inset}
-
-    /* captured area */
-    .side{flex:0 0 220px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:12px}
-    .side h4{margin:0 0 8px 0;font-size:14px}
-    .captured{min-height:120px;display:flex;flex-wrap:wrap;gap:8px;padding:6px;border-radius:8px;background:rgba(255,255,255,0.02);}
-    .captured .small-piece{width:48px;height:48px;border-radius:8px;padding:4px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center}
-
-    /* animation when piece captured: flying to container */
-    @keyframes flyAway {
-      0%{transform: translate(0,0) scale(1) rotate(0deg);opacity:1}
-      60%{transform: translate(var(--tx), var(--ty)) scale(1.08) rotate(12deg);opacity:1}
-      100%{transform: translate(calc(var(--tx)), calc(var(--ty))) scale(0.64) rotate(18deg);opacity:0.95}
-    }
-
-    /* small UI */
-    .meta{margin-top:10px;display:flex;justify-content:space-between;align-items:center}
-    .log{max-height:120px;overflow:auto;padding:8px;background:rgba(255,255,255,0.02);border-radius:8px;font-size:13px}
-
-    /* promotion modal */
-    .promoModal{display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:14000}
-    .promoBox{position:relative;max-width:420px;width:92%;margin:auto;background:linear-gradient(180deg,#0b1220,#081021);padding:18px;border-radius:14px;box-shadow:0 12px 40px rgba(2,6,23,0.7);color:#fff;z-index:14001;text-align:center}
-    .promoGrid{display:flex;gap:8px;justify-content:center;margin-top:12px}
-
-    /* responsive */
-    @media (max-width:980px){
-      .board-wrap{flex-direction:column;align-items:center}
-      .side{width:100%}
-    }
-  </style>
+  <title>কার্টুন দাবা — Responsive Realistic Pieces (Multiplayer ready)</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="wrap">
-  <div class="panel">
+  <div class="panel" role="region" aria-label="Chess game panel">
     <div class="header">
-      <div class="title">কার্টুন দাবা — সঠিক নিয়ম সহ</div>
-      <div class="controls">
+      <div style="display:flex;gap:14px;align-items:center">
+        <div class="title">কার্টুন দাবা — Responsive & Real Pieces</div>
+        <div class="timers" aria-hidden="false" title="Timers">
+          <div id="timerWhiteBox" class="timerBox running">
+            <div class="timerLabel">White</div>
+            <div id="timerWhite" class="timerVal">10:00</div>
+          </div>
+          <div id="timerBlackBox" class="timerBox">
+            <div class="timerLabel">Black</div>
+            <div id="timerBlack" class="timerVal">10:00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multiplayer controls (added) -->
+      <div class="multiplayer" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div aria-live="polite" style="display:flex;gap:8px;align-items:center">
+          <label for="your-id" style="font-weight:600">Your ID:</label>
+          <div id="your-id" role="status" aria-atomic="true" style="min-width:140px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);">—</div>
+          <button id="copyIdBtn" title="Copy your ID">Copy</button>
+        </div>
+
+        <div style="display:flex;gap:6px;align-items:center">
+          <label for="peer-id-input">Connect to ID:</label>
+          <input id="peer-id-input" placeholder="Enter peer ID" aria-label="Peer ID input" style="min-width:180px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06)" />
+          <button id="connect-btn" class="primary">Connect</button>
+          <button id="disconnect-btn" style="display:none">Disconnect</button>
+        </div>
+
+        <div id="connStatus" style="margin-left:8px;min-width:220px" aria-live="polite">Status: Not connected</div>
+      </div>
+      <!-- end multiplayer controls -->
+
+      <div class="controls" role="toolbar" aria-label="game controls">
         <button id="undo">Undo</button>
         <button id="restart">Restart</button>
         <button class="primary" id="toggleHints">Hints: ON</button>
+        <button id="toggleAI" class="compactBtn">AI: OFF</button>
+        <select id="aiColorSelect" aria-label="AI color select" style="display:inline-block">
+          <option value="b">AI কালো</option>
+          <option value="w">AI সাদা</option>
+        </select>
+        <button id="toggleSides" class="sideToggle">Show Sidebars</button>
       </div>
     </div>
 
     <div class="board-wrap">
-      <div class="side">
+      <div class="side" id="sideLeft" aria-hidden="false">
         <h4>White captured</h4>
         <div id="captured-white" class="captured" aria-label="white captures"></div>
         <div style="height:8px"></div>
@@ -102,15 +68,44 @@
         </div>
       </div>
 
-      <div id="board" class="board" role="application" aria-label="Chess board">
-        <div id="grid" class="grid"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <!-- Captured mobile (top) - intended to show "Black captured" for the top player -->
+        <div id="capturedBottomMobile" class="captured-mobile" aria-hidden="true" aria-label="Bottom player captures (mobile)">
+          <div class="label">White captured (নীচের প্লেয়ারের নিচে)</div>
+          <div id="capturedBottomRow" class="row" style="justify-content:center"></div>
+        </div>
+
+        <div id="board" class="board" role="application" aria-label="Chess board">
+          <div id="grid" class="grid" aria-live="polite"></div>
+        </div>
+
+        <!-- Captured mobile (bottom) - intended to show "White captured" for the bottom player -->
+        
+        <div id="capturedTopMobile" class="captured-mobile" aria-hidden="true" aria-label="Top player captures (mobile)">
+          <div class="label">Black captured (উপরের প্লেয়ারের নিচে)</div>
+          <div id="capturedTopRow" class="row" style="justify-content:center"></div>
+        </div>
+
+        <!-- Captured strip (fallback / tablet) -->
+        <div id="capturedStrip" class="captured-strip" aria-hidden="false">
+          <div class="half" id="capturedStripLeft">
+            <div class="label">White captured</div>
+            <div id="capturedStripWhitePreview" style="display:flex;gap:6px;align-items:center"></div>
+            <div class="badge" id="capturedStripWhiteCount">0</div>
+          </div>
+          <div class="half" id="capturedStripRight" style="justify-content:flex-end">
+            <div class="label">Black captured</div>
+            <div id="capturedStripBlackPreview" style="display:flex;gap:6px;align-items:center"></div>
+            <div class="badge" id="capturedStripBlackCount">0</div>
+          </div>
+        </div>
       </div>
 
-      <div class="side">
+      <div class="side" id="sideRight" aria-hidden="false">
         <h4>Black captured</h4>
         <div id="captured-black" class="captured" aria-label="black captures"></div>
         <div style="height:8px"></div>
-        <div class="log" id="logArea"></div>
+        <div class="log" id="logArea" aria-live="polite"></div>
       </div>
     </div>
 
@@ -118,9 +113,9 @@
 </div>
 
 <!-- Winner modal -->
-  <div id="winnerModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:12000;">
+  <div id="winnerModal" aria-hidden="true">
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,18,0.6),rgba(2,6,23,0.85));backdrop-filter:blur(6px);"></div>
-    <div style="position:relative;max-width:520px;width:92%;margin:auto;background:linear-gradient(180deg,#0b1220,#081021);padding:18px;border-radius:14px;box-shadow:0 12px 40px rgba(2,6,23,0.7);color:#fff;z-index:12001;text-align:center;">
+    <div class="modalBox">
       <h2 id="winnerText" style="margin:6px 0 10px 0;font-size:20px;">অভিনন্দন!</h2>
       <p id="winnerSub" style="margin:0 0 18px 0;opacity:0.9">খুব সুন্দর — আপনি জিতেছেন। একটা আরেকটি গেম খেলবেন?</p>
       <div style="display:flex;gap:10px;justify-content:center;">
@@ -131,9 +126,9 @@
   </div>
 
 <!-- Promotion modal -->
-<div id="promoModal" class="promoModal">
+<div id="promoModal" class="promoModal" role="dialog" aria-modal="true">
   <div class="promoBox">
-    <h3 id="promoTitle">Pawn promoted! কোন পিস নিতে চান?</h3>
+    <h3 id="promoTitle">Pawn promoted! কোন পিস নেবেন?</h3>
     <div class="promoGrid">
       <button class="promoBtn" data-piece="q">Queen</button>
       <button class="promoBtn" data-piece="r">Rook</button>
@@ -143,536 +138,11 @@
   </div>
 </div>
 
-<script>
-/* ------------------ core game state ------------------ */
-const files = ['a','b','c','d','e','f','g','h'];
-const ranks = [8,7,6,5,4,3,2,1];
-let state = {
-  board: [], // 8x8 array of pieces or null
-  turn: 'w',
-  moveCount: 1,
-  selected: null,
-  history: [],
-  captured: {w:[], b:[]},
-  movedFlags: { // track moved pieces for castling rule
-    wR1:false, wR2:false, wK:false,
-    bR1:false, bR2:false, bK:false
-  },
-  hints: true,
-  enPassant: null, // {r,c} square that can be captured into (the square behind a 2-step pawn)
-  halfmoveClock:0
-};
+<!-- socket.io client (only include if you use a Socket.IO server) -->
+<script src="/socket.io/socket.io.js"></script>
 
-/* piece format: {t:'p',c:'w'}  t: p,n,b,r,q,k */
-function initialBoard(){
-  const empty = Array(8).fill(null).map(()=>Array(8).fill(null));
-  const p = (t,c)=>({t,c});
-  const back = ['r','n','b','q','k','b','n','r'];
-  for(let i=0;i<8;i++){ empty[1][i]=p('p','b'); empty[6][i]=p('p','w'); }
-  for(let i=0;i<8;i++){ empty[0][i]=p(back[i],'b'); empty[7][i]=p(back[i],'w'); }
-  return empty;
-}
+<!-- main game script -->
+<script src="script.js"></script>
 
-/* ---------- rendering ---------- */
-const gridEl = document.getElementById('grid');
-const turnLabel = document.getElementById('turnLabel');
-const moveCountEl = document.getElementById('moveCount');
-const logArea = document.getElementById('logArea');
-const capturedWhite = document.getElementById('captured-white');
-const capturedBlack = document.getElementById('captured-black');
-
-function makeCellId(r,c){ return `c${r}${c}` }
-
-function render(){
-  gridEl.innerHTML='';
-  for(let r=0;r<8;r++){
-    for(let c=0;c<8;c++){
-      const cell = document.createElement('div');
-      cell.className = 'cell ' + (((r+c)%2===0)?'light':'dark');
-      cell.id = makeCellId(r,c);
-      cell.dataset.r = r; cell.dataset.c = c;
-      // add coordinate labels on corners
-      if(c===0 || r===7){
-        const coord = document.createElement('div'); coord.className='coords';
-        const file = files[c]; const rank = ranks[r];
-        coord.textContent = (r===7?file+' ':'') + (c===0?rank:'');
-        cell.appendChild(coord);
-      }
-      gridEl.appendChild(cell);
-      cell.addEventListener('click', onCellClick);
-    }
-  }
-  // add pieces
-  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
-    const piece = state.board[r][c];
-    if(piece){
-      placePiece(r,c,piece);
-    }
-  }
-  updateCapturedUI();
-  turnLabel.textContent = state.turn==='w'? 'White':'Black';
-  moveCountEl.textContent = state.moveCount;
-  // highlight king in check
-  clearKingCheckMarks();
-  const kpos = findKing(state.turn);
-  if(kpos){ const enemy = (state.turn==='w')?'b':'w'; if(isSquareAttacked(kpos.r,kpos.c,enemy)){ const cell = document.getElementById(makeCellId(kpos.r,kpos.c)); if(cell) cell.classList.add('check'); }}
-}
-
-function placePiece(r,c,piece){
-  const cell = document.getElementById(makeCellId(r,c));
-  if(!cell) return;
-  const div = document.createElement('div');
-  div.className='piece';
-  div.draggable=false;
-  div.dataset.r=r; div.dataset.c=c;
-  div.dataset.t=piece.t; div.dataset.colo=piece.c;
-  div.innerHTML = pieceSVG(piece.t,piece.c);
-  // event handled via cell click selection, but keep piece pointer cursor
-  cell.appendChild(div);
-}
-
-/* piece SVGs */
-function pieceSVG(type,color){
-  const fill = color==='w'? '#fff' : '#111';
-  const stroke = color==='w'? '#333' : '#f7f7f7';
-  const svgs = {
-    p:`<svg viewBox="0 0 64 64" class="svgwrap"><g><circle cx="32" cy="20" r="8" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/><rect x="20" y="32" width="24" height="18" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/></g></svg>`,
-    r:`<svg viewBox="0 0 64 64" class="svgwrap"><g><rect x="16" y="14" width="32" height="8" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/><rect x="20" y="26" width="24" height="26" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/></g></svg>`,
-    n:`<svg viewBox="0 0 64 64" class="svgwrap"><g><path d="M20 38 C20 22,44 22,44 38 C44 44,36 50,32 50 C28 50,20 44,20 38 Z" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/><circle cx="36" cy="30" r="3" fill="${stroke}"/></g></svg>`,
-    b:`<svg viewBox="0 0 64 64" class="svgwrap"><g><ellipse cx="32" cy="30" rx="12" ry="10" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/><rect x="24" y="40" width="16" height="10" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/></g></svg>`,
-    q:`<svg viewBox="0 0 64 64" class="svgwrap"><g><circle cx="20" cy="20" r="4" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/><circle cx="32" cy="16" r="4" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/><circle cx="44" cy="20" r="4" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/><rect x="18" y="28" width="28" height="22" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/></g></svg>`,
-    k:`<svg viewBox="0 0 64 64" class="svgwrap"><g><rect x="28" y="10" width="8" height="12" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.4"/><path d="M20 36 C28 28,36 28,44 36 L44 46 C40 50,24 50,20 46 Z" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/></g></svg>`
-  };
-  return svgs[type] || svgs['p'];
-}
-
-/* ---------- interaction ---------- */
-function onCellClick(e){
-  const cell = e.currentTarget;
-  const r = +cell.dataset.r; const c = +cell.dataset.c;
-  const piece = state.board[r][c];
-  // if there is a selected piece and clicking a legal target -> move
-  if(state.selected){
-    const sel = state.selected;
-    const moves = legalMovesFor(sel.r,sel.c,sel.piece,true);
-    const valid = moves.some(m=>m.r===r && m.c===c && !m.invalid);
-    if(valid){ moveSelectedTo(r,c); return; }
-  }
-  // otherwise, if clicking own piece -> select and show legal moves
-  if(piece && piece.c===state.turn){
-    clearHighlights();
-    state.selected = {r,c,piece};
-    const moves = legalMovesFor(r,c,piece,true);
-    highlightCells(moves);
-    return;
-  }
-  // clicking elsewhere clears selection
-  clearHighlights(); state.selected=null;
-}
-
-function clearHighlights(){
-  document.querySelectorAll('.cell').forEach(x=>{ x.classList.remove('highlight','move-target','capture-target') });
-}
-
-function highlightCells(moves){
-  moves.forEach(m=>{
-    const id = makeCellId(m.r,m.c);
-    const cell = document.getElementById(id);
-    if(!cell) return;
-    cell.classList.add('highlight');
-    if(m.capture) cell.classList.add('capture-target'); else cell.classList.add('move-target');
-  })
-}
-
-function moveSelectedTo(r,c){
-  const sel = state.selected; if(!sel) return; const fromR=sel.r, fromC=sel.c;
-  const moves = legalMovesFor(fromR,fromC,sel.piece,true);
-  const move = moves.find(m=>m.r===r && m.c===c);
-  if(!move) { clearHighlights(); state.selected=null; return; }
-
-  // record history for undo (deep copy relevant fields)
-  state.history.push(JSON.parse(JSON.stringify({board:state.board,turn:state.turn,movedFlags:state.movedFlags,captured:state.captured,moveCount:state.moveCount,enPassant:state.enPassant,halfmoveClock:state.halfmoveClock})));
-
-  // perform move
-  const target = state.board[r][c];
-  // enPassant capture
-  if(move.enPassant){
-    const takenR = fromR; const takenC = c; // pawn captured behind
-    const taken = state.board[takenR][takenC];
-    if(taken){ state.captured[taken.c].push(taken); state.board[takenR][takenC]=null; }
-  }
-
-  state.board[r][c]=sel.piece;
-  state.board[fromR][fromC]=null;
-
-  // update halfmove clock
-  if(sel.piece.t==='p' || target) state.halfmoveClock=0; else state.halfmoveClock++;
-
-  // update moved flags and handle castling rook move
-  if(sel.piece.t==='k'){
-    if(sel.piece.c==='w') state.movedFlags.wK=true; else state.movedFlags.bK=true;
-    // if castle
-    if(move.castle){
-      if(move.castle==='K'){
-        // kingside: rook from h -> f
-        if(sel.piece.c==='w'){ state.board[7][5]=state.board[7][7]; state.board[7][7]=null; state.movedFlags.wR2=true; }
-        else { state.board[0][5]=state.board[0][7]; state.board[0][7]=null; state.movedFlags.bR2=true; }
-      } else {
-        // queenside: rook from a -> d
-        if(sel.piece.c==='w'){ state.board[7][3]=state.board[7][0]; state.board[7][0]=null; state.movedFlags.wR1=true; }
-        else { state.board[0][3]=state.board[0][0]; state.board[0][0]=null; state.movedFlags.bR1=true; }
-      }
-    }
-  }
-  if(sel.piece.t==='r'){
-    if(sel.piece.c==='w'){ if(fromR===7 && fromC===0) state.movedFlags.wR1=true; if(fromR===7 && fromC===7) state.movedFlags.wR2=true; }
-    else { if(fromR===0 && fromC===0) state.movedFlags.bR1=true; if(fromR===0 && fromC===7) state.movedFlags.bR2=true; }
-  }
-
-  // log captures
-  if(target){
-    handleCaptureAnimation(r,c,target);
-    state.captured[sel.piece.c==='w'? 'w' : 'b'].push(target);
-    log(`${sel.piece.c==='w'?'White':'Black'} ${nameFor(sel.piece.t)} captured ${nameFor(target.t)} at ${files[c]}${ranks[r]}`);
-  } else if(move.enPassant){
-    log(`${sel.piece.c==='w'?'White':'Black'} Pawn captured en-passant at ${files[c]}${ranks[r]}`);
-  } else {
-    log(`${sel.piece.c==='w'?'White':'Black'} ${nameFor(sel.piece.t)} moved to ${files[c]}${ranks[r]}`);
-  }
-
-  // pawn double-step sets enPassant target
-  if(sel.piece.t==='p' && Math.abs(r-fromR)===2){
-    // target square is the square jumped over
-    state.enPassant = { r: (r+fromR)/2, c: c };
-  } else {
-    state.enPassant = null;
-  }
-
-  // pawn promotion
-  if(sel.piece.t==='p' && (r===0 || r===7)){
-    // if AI, auto promote to queen; otherwise show modal to choose
-    if(state.ai && state.ai.enabled && state.turn===state.ai.color){
-      sel.piece.t='q'; log(`Pawn auto-promoted to Queen at ${files[c]}${ranks[r]}`);
-    } else {
-      showPromotion(sel.piece, r, c);
-      // switch turn temporarily but wait for promotion selection before finalizing
-      state.turn = state.turn==='w'? 'b':'w';
-      state.moveCount += (state.turn==='w'?1:0);
-      state.selected = null; clearHighlights(); render();
-      return;
-    }
-  }
-
-  // after move, check for checkmate/stalemate
-  const enemy = state.turn==='w'? 'b':'w';
-  // switch turn
-  state.turn = state.turn==='w'? 'b':'w';
-  state.moveCount += (state.turn==='w'?1:0);
-  state.selected = null; clearHighlights();
-  render();
-
-  // check legal moves for opponent
-  const hasMoves = anyLegalMoves(state.turn);
-  if(!hasMoves){
-    const kingPos = findKing(state.turn);
-    const inCheck = kingPos? isSquareAttacked(kingPos.r,kingPos.c, (state.turn==='w'?'b':'w')) : false;
-    if(inCheck){ showWinnerModal((state.turn==='w')? 'Black':'White'); log('Checkmate'); }
-    else { showWinnerModal('Draw'); log('Stalemate (draw)'); }
-  } else {
-    // indicate check if present
-    const kp = findKing(state.turn);
-    if(kp && isSquareAttacked(kp.r,kp.c, (state.turn==='w'?'b':'w'))){ log((state.turn==='w'?'White':'Black') + ' is in check'); }
-  }
-
-  // AI trigger handled by polling
-}
-
-function showPromotion(piece,r,c){
-  const modal = document.getElementById('promoModal');
-  modal.style.display='flex';
-  const title = document.getElementById('promoTitle');
-  title.textContent = 'Pawn promoted! কোন পিস নিতে চান?';
-  document.querySelectorAll('.promoBtn').forEach(b=>{
-    b.onclick = ()=>{
-      const p = b.dataset.piece;
-      piece.t = p; modal.style.display='none';
-      log(`Pawn promoted to ${nameFor(p)} at ${files[c]}${ranks[r]}`);
-      // after promotion finalize turn & check for mate
-      const enemy = state.turn==='w'? 'b':'w';
-      // Because we had already switched turn earlier, ensure correct flow: no additional switching here
-      render();
-      const hasMoves = anyLegalMoves(state.turn);
-      if(!hasMoves){
-        const kingPos = findKing(state.turn);
-        const inCheck = kingPos? isSquareAttacked(kingPos.r,kingPos.c, (state.turn==='w'?'b':'w')) : false;
-        if(inCheck){ showWinnerModal((state.turn==='w')? 'Black':'White'); log('Checkmate'); }
-        else { showWinnerModal('Draw'); log('Stalemate (draw)'); }
-      }
-    }
-  });
-}
-
-function updateMovedFlags(piece, fromR, fromC){
-  // kept for compatibility (not used now)
-}
-
-/* ---------- move generation with check filtering ---------- */
-function legalMovesFor(r,c,piece,forUI=false){
-  // generate pseudo-legal moves then filter out those that leave king in check
-  const pseudo = pseudoLegalMoves(r,c,piece);
-  const legal = [];
-  for(const m of pseudo){
-    // simulate
-    const snap = snapshotState();
-    // perform move on snap
-    const target = snap.board[m.r][m.c];
-    // handle en-passant capture
-    if(m.enPassant){ const takenR = r; const takenC = m.c; snap.board[takenR][takenC]=null; }
-    snap.board[m.r][m.c]= {...snap.board[r][c] }; snap.board[r][c]=null;
-    // handle castling rook move
-    if(m.castle){ if(m.castle==='K'){ if(piece.c==='w'){ snap.board[7][5]=snap.board[7][7]; snap.board[7][7]=null; } else { snap.board[0][5]=snap.board[0][7]; snap.board[0][7]=null; } } else { if(piece.c==='w'){ snap.board[7][3]=snap.board[7][0]; snap.board[7][0]=null; } else { snap.board[0][3]=snap.board[0][0]; snap.board[0][0]=null; } } }
-    // find own king
-    const kingPos = findKingFor(snap, piece.c);
-    if(!kingPos) continue; // shouldn't happen
-    // if king is attacked after move -> illegal
-    const opponent = piece.c==='w'? 'b':'w';
-    if(isSquareAttackedFor(snap, kingPos.r, kingPos.c, opponent)){
-      // illegal
-    } else {
-      legal.push(m);
-    }
-  }
-  return legal;
-}
-
-function pseudoLegalMoves(r,c,piece){
-  const moves=[];
-  const dir = piece.c==='w'? -1:1;
-  const inBoard = (rr,cc)=> rr>=0 && rr<8 && cc>=0 && cc<8;
-  const pushIf = (rr,cc,cap)=>{ if(inBoard(rr,cc)){ const t=state.board[rr][cc]; if(t==null && !cap) moves.push({r:rr,c:cc}); if(t && t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}) }};
-
-  if(piece.t==='p'){
-    // forward
-    const fr=r+dir; if(inBoard(fr,c) && !state.board[fr][c]) moves.push({r:fr,c});
-    // double on first move
-    const startRow = piece.c==='w'?6:1; const fr2=r+dir*2;
-    if(r===startRow && inBoard(fr2,c) && !state.board[fr][c] && !state.board[fr2][c]) moves.push({r:fr2,c});
-    // captures
-    for(const dc of [-1,1]){ const rr=r+dir, cc=c+dc; if(inBoard(rr,cc) && state.board[rr][cc] && state.board[rr][cc].c!==piece.c) moves.push({r:rr,c:cc,capture:true}); }
-    // en-passant
-    if(state.enPassant){ if(Math.abs(state.enPassant.c - c)===1 && state.enPassant.r===r+dir){ moves.push({r:state.enPassant.r,c:state.enPassant.c,enPassant:true,capture:true}); } }
-  }
-  if(piece.t==='n'){
-    const deltas=[[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
-    deltas.forEach(d=>{ const rr=r+d[0], cc=c+d[1]; if(inBoard(rr,cc)){ const t=state.board[rr][cc]; if(!t) moves.push({r:rr,c:cc}); else if(t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}); }});
-  }
-  if(piece.t==='b' || piece.t==='q' || piece.t==='r'){
-    const dirs = [];
-    if(piece.t==='b' || piece.t==='q') dirs.push([1,1],[1,-1],[-1,1],[-1,-1]);
-    if(piece.t==='r' || piece.t==='q') dirs.push([1,0],[-1,0],[0,1],[0,-1]);
-    dirs.forEach(d=>{
-      let rr=r+d[0], cc=c+d[1];
-      while(inBoard(rr,cc)){
-        const t = state.board[rr][cc];
-        if(!t) moves.push({r:rr,c:cc}); else { if(t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}); break; }
-        rr+=d[0]; cc+=d[1];
-      }
-    })
-  }
-  if(piece.t==='k'){
-    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0 && dc===0) continue; const rr=r+dr, cc=c+dc; if(inBoard(rr,cc)){ const t=state.board[rr][cc]; if(!t) moves.push({r:rr,c:cc}); else if(t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}); }}
-    // castling (must check moved flags and path clear; check for squares under attack will be checked in filter)
-    if(piece.c==='w' && r===7 && c===4 && !state.movedFlags.wK){
-      // kingside
-      if(!state.movedFlags.wR2 && !state.board[7][5] && !state.board[7][6]) moves.push({r:7,c:6,castle:'K'});
-      if(!state.movedFlags.wR1 && !state.board[7][3] && !state.board[7][2] && !state.board[7][1]) moves.push({r:7,c:2,castle:'Q'});
-    }
-    if(piece.c==='b' && r===0 && c===4 && !state.movedFlags.bK){
-      if(!state.movedFlags.bR2 && !state.board[0][5] && !state.board[0][6]) moves.push({r:0,c:6,castle:'K'});
-      if(!state.movedFlags.bR1 && !state.board[0][3] && !state.board[0][2] && !state.board[0][1]) moves.push({r:0,c:2,castle:'Q'});
-    }
-  }
-  return moves;
-}
-
-/* ---------- attack detection ---------- */
-function isSquareAttacked(r,c,byColor){ return isSquareAttackedFor(state,r,c,byColor); }
-function isSquareAttackedFor(st, r, c, byColor){
-  // iterate all opponent pieces and see if any attack (simple version covering all piece types)
-  const inBoard = (rr,cc)=> rr>=0 && rr<8 && cc>=0 && cc<8;
-  // pawn attacks
-  const pawnDir = (byColor==='w')? -1:1; // pawns of byColor move this direction
-  for(const dc of [-1,1]){
-    const rr = r - pawnDir; const cc = c + dc; // note: we check whether a pawn at (rr,cc) attacks (r,c)
-    if(inBoard(rr,cc) && st.board[rr][cc] && st.board[rr][cc].t==='p' && st.board[rr][cc].c===byColor) return true;
-  }
-  // knights
-  const nd = [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
-  for(const d of nd){ const rr=r+d[0], cc=c+d[1]; if(inBoard(rr,cc) && st.board[rr][cc] && st.board[rr][cc].t==='n' && st.board[rr][cc].c===byColor) return true; }
-  // bishops/queens (diagonals)
-  const diags = [[1,1],[1,-1],[-1,1],[-1,-1]];
-  for(const d of diags){ let rr=r+d[0], cc=c+d[1]; while(inBoard(rr,cc)){ const p = st.board[rr][cc]; if(p){ if(p.c===byColor && (p.t==='b' || p.t==='q')) return true; else break; } rr+=d[0]; cc+=d[1]; } }
-  // rooks/queens (straight)
-  const strs = [[1,0],[-1,0],[0,1],[0,-1]];
-  for(const d of strs){ let rr=r+d[0], cc=c+d[1]; while(inBoard(rr,cc)){ const p = st.board[rr][cc]; if(p){ if(p.c===byColor && (p.t==='r' || p.t==='q')) return true; else break; } rr+=d[0]; cc+=d[1]; } }
-  // king (adjacent)
-  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0 && dc===0) continue; const rr=r+dr, cc=c+dc; if(inBoard(rr,cc) && st.board[rr][cc] && st.board[rr][cc].t==='k' && st.board[rr][cc].c===byColor) return true; }
-  return false;
-}
-
-function snapshotState(){
-  return { board: JSON.parse(JSON.stringify(state.board)), movedFlags: JSON.parse(JSON.stringify(state.movedFlags)), enPassant: state.enPassant };
-}
-function isSquareAttackedForSnap(snap, r,c, byColor){ return isSquareAttackedFor({board:snap.board}, r,c, byColor); }
-
-function findKing(color){ return findKingFor(state, color); }
-function findKingFor(st, color){ for(let r=0;r<8;r++) for(let c=0;c<8;c++){ const p = st.board[r][c]; if(p && p.t==='k' && p.c===color) return {r,c}; } return null; }
-
-/* ---------- utilities: check if any legal moves for color ---------- */
-function anyLegalMoves(color){
-  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
-    const p = state.board[r][c]; if(!p || p.c!==color) continue;
-    const moves = legalMovesFor(r,c,p);
-    if(moves.length>0) return true;
-  }
-  return false;
-}
-
-/* ---------- capture animation (keeps existing) ---------- */
-function handleCaptureAnimation(r,c,target){
-  const cell = document.getElementById(makeCellId(r,c));
-  const pieceEl = cell.querySelector('.piece');
-  if(!pieceEl) return;
-  const floating = pieceEl.cloneNode(true);
-  floating.style.position='absolute';
-  floating.style.left = (pieceEl.getBoundingClientRect().left - gridEl.getBoundingClientRect().left) + 'px';
-  floating.style.top = (pieceEl.getBoundingClientRect().top - gridEl.getBoundingClientRect().top) + 'px';
-  floating.style.width = pieceEl.offsetWidth+'px';
-  floating.style.height = pieceEl.offsetHeight+'px';
-  floating.style.zIndex = 9999;
-  floating.classList.add('flying');
-  gridEl.appendChild(floating);
-
-  const dest = (target.c==='w')? capturedWhite : capturedBlack;
-  const destRect = dest.getBoundingClientRect();
-  const fromRect = pieceEl.getBoundingClientRect();
-  const tx = (destRect.left + 10) - fromRect.left;
-  const ty = (destRect.top + 10) - fromRect.top;
-  floating.style.setProperty('--tx', tx + 'px');
-  floating.style.setProperty('--ty', ty + 'px');
-  floating.style.transition = 'transform 650ms cubic-bezier(.2,.9,.2,1), opacity 700ms';
-  floating.style.transformOrigin = 'center';
-  floating.animate([
-    { transform: 'translate(0,0) rotate(0deg) scale(1)', opacity:1 },
-    { transform: `translate(${tx*0.6}px, ${ty*0.6}px) rotate(8deg) scale(1.04)`, opacity:1 },
-    { transform: `translate(${tx}px, ${ty}px) rotate(16deg) scale(0.66)`, opacity:0.98 }
-  ], {duration:700, easing:'cubic-bezier(.2,.9,.2,1)'});
-
-  setTimeout(()=>{
-    const small = document.createElement('div'); small.className='small-piece'; small.innerHTML = pieceSVG(target.t,target.c);
-    dest.appendChild(small);
-    floating.remove();
-  },720);
-}
-
-/* ---------- utility ---------- */
-function nameFor(t){ return {'p':'Pawn','n':'Knight','b':'Bishop','r':'Rook','q':'Queen','k':'King'}[t] }
-function log(msg){ const el = document.createElement('div'); el.textContent = msg; logArea.prepend(el); }
-function updateCapturedUI(){ capturedWhite.innerHTML=''; capturedBlack.innerHTML=''; state.captured.w.forEach(p=>{ const d=document.createElement('div'); d.className='small-piece'; d.innerHTML=pieceSVG(p.t,p.c); capturedWhite.appendChild(d); }); state.captured.b.forEach(p=>{ const d=document.createElement('div'); d.className='small-piece'; d.innerHTML=pieceSVG(p.t,p.c); capturedBlack.appendChild(d); }); }
-function clearKingCheckMarks(){ document.querySelectorAll('.cell').forEach(x=> x.classList.remove('check')); }
-
-/* ---------- controls ---------- */
-document.getElementById('restart').addEventListener('click', ()=>{ init(); log('Game restarted'); });
-document.getElementById('undo').addEventListener('click', ()=>{ if(state.history.length) { const prev = state.history.pop(); state.board = prev.board; state.turn = prev.turn; state.movedFlags = prev.movedFlags; state.captured = prev.captured; state.moveCount = prev.moveCount; state.enPassant = prev.enPassant; state.halfmoveClock = prev.halfmoveClock || 0; render(); log('Undo performed'); } });
-const hintsBtn = document.getElementById('toggleHints'); hintsBtn.addEventListener('click', ()=>{ state.hints = !state.hints; hintsBtn.textContent = 'Hints: ' + (state.hints? 'ON':'OFF'); });
-
-/* ---------- init ---------- */
-function init(){ state.board = initialBoard(); state.turn='w'; state.moveCount=1; state.selected=null; state.history=[]; state.captured={w:[],b:[]}; state.movedFlags={wR1:false,wR2:false,wK:false,bR1:false,bR2:false,bK:false}; state.enPassant=null; state.halfmoveClock=0; logArea.innerHTML=''; render(); }
-
-init();
-
-/* ---------- Winner modal handling ---------- */
-function showWinnerModal(winner){
-  const modal = document.getElementById('winnerModal');
-  const text = document.getElementById('winnerText');
-  const sub = document.getElementById('winnerSub');
-  if(winner==='Draw'){ text.textContent = 'ড্র'; sub.textContent = 'গেম ড্র হয়েছে। আবার চেষ্টা করবেন?'; }
-  else { text.textContent = 'অভিনন্দন — ' + (winner==='White'? 'সাদা (White)':'কালো (Black)') + ' জিতেছে!'; sub.textContent = 'আপনি কি আরেকটি গেম খেলতে চান?'; }
-  modal.style.display = 'flex';
-
-  document.getElementById('playAgainBtn').onclick = ()=>{ modal.style.display='none'; init(); };
-  document.getElementById('closeModalBtn').onclick = ()=>{ modal.style.display='none'; };
-}
-
-/* ---------- AI opponent: use legal moves (respecting checks, en-passant, castling) ---------- */
-state.ai = { enabled:false, color:'b', thinking:false };
-const pieceValues = { p:100, n:320, b:330, r:500, q:900, k:20000 };
-
-function addAiControls(){
-  const controls = document.querySelector('.controls');
-  if(!controls) return;
-  const aiBtn = document.createElement('button');
-  aiBtn.id = 'toggleAI'; aiBtn.textContent = 'AI: OFF'; aiBtn.style.fontWeight='600';
-  controls.appendChild(aiBtn);
-
-  const sel = document.createElement('select'); sel.id='aiColorSelect'; sel.style.padding='6px'; sel.style.borderRadius='8px'; sel.style.background='rgba(255,255,255,0.02)'; sel.style.color='#fff';
-  const optB = document.createElement('option'); optB.value='b'; optB.text='AI plays Black (কালো)';
-  const optW = document.createElement('option'); optW.value='w'; optW.text='AI plays White (সাদা)';
-  sel.appendChild(optB); sel.appendChild(optW);
-  controls.appendChild(sel);
-
-  aiBtn.addEventListener('click', ()=>{
-    state.ai.enabled = !state.ai.enabled;
-    aiBtn.textContent = 'AI: ' + (state.ai.enabled? 'ON':'OFF');
-    state.ai.color = sel.value;
-    if(state.ai.enabled && state.turn===state.ai.color) setTimeout(()=> aiMakeMove(), 600);
-  });
-
-  sel.addEventListener('change', ()=>{ state.ai.color = sel.value; if(state.ai.enabled) aiBtn.textContent = 'AI: ON (' + (state.ai.color==='b'?'Black':'White') + ')'; });
-}
-
-function aiMakeMove(){
-  if(!state.ai.enabled) return; if(state.ai.thinking) return; state.ai.thinking = true;
-  const color = state.ai.color;
-  const candidates = [];
-  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
-    const piece = state.board[r][c]; if(!piece || piece.c!==color) continue;
-    const moves = legalMovesFor(r,c,piece,true);
-    for(const m of moves){
-      const target = state.board[m.r][m.c];
-      const capVal = target? pieceValues[target.t] || 0 : 0;
-      candidates.push({fromR:r,fromC:c,toR:m.r,toC:m.c,captureValue:capVal,move: m, pieceType: piece.t});
-    }
-  }
-  if(candidates.length===0){ state.ai.thinking=false; return; }
-
-  let chosen;
-  const caps = candidates.filter(x=>x.captureValue>0);
-  if(caps.length>0){
-    caps.sort((a,b)=>{ if(b.captureValue!==a.captureValue) return b.captureValue-a.captureValue; return (pieceValues[a.pieceType] || 0) - (pieceValues[b.pieceType] || 0); });
-    chosen = caps[0];
-  } else {
-    candidates.sort((a,b)=>{ return (pieceValues[b.pieceType]||0) - (pieceValues[a.pieceType]||0); });
-    const topN = Math.max(1, Math.floor(candidates.length * 0.25));
-    const pool = candidates.slice(0, topN);
-    chosen = pool[Math.floor(Math.random()*pool.length)];
-  }
-
-  setTimeout(()=>{
-    state.selected = { r: chosen.fromR, c: chosen.fromC, piece: state.board[chosen.fromR][chosen.fromC] };
-    try{ moveSelectedTo(chosen.toR, chosen.toC); } catch(e){ console.error('AI move failed', e); }
-    state.ai.thinking = false;
-  }, 600 + Math.floor(Math.random()*600));
-}
-
-setInterval(()=>{
-  if(state.ai.enabled && state.turn===state.ai.color && !state.ai.thinking){ aiMakeMove(); }
-}, 700);
-
-// add AI controls on load
-document.addEventListener('DOMContentLoaded', ()=>{ addAiControls(); });
-addAiControls();
-
-</script>
 </body>
 </html>
