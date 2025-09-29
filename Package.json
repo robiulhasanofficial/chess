@@ -1,23 +1,17 @@
 {
-  "name": "chess-mp-server",
+  "name": "cartoon-chess-multiplayer",
   "version": "1.0.0",
-  "description": "Express + Socket.IO server for Cartoon Chess multiplayer",
+  "description": "Multiplayer Cartoon Chess Game",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "keywords": ["chess","multiplayer","socket.io","express"],
-  "author": "",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18"
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.8.0"
+    "socket.io": "^4.7.5"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.22"
-  }
+  "keywords": ["chess", "multiplayer", "game"],
+  "author": "Your Name",
+  "license": "MIT"
 }
