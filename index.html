@@ -1,148 +1,1431 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="utf-8" />
-  <!-- keep viewport but don't disable user zoom for accessibility -->
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>কার্টুন দাবা — Responsive Realistic Pieces (Multiplayer ready)</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>উন্নত মোবাইল দাবা গেম</title>
+  <style>
+    :root {
+      --board-size: clamp(280px, 92vmin, 720px);
+      --cell-gap: clamp(2px, 0.6vmin, 6px);
+      --light-piece: #f4ecd8;
+      --dark-piece: #2f2216;
+      --light-square: linear-gradient(180deg,#f7f0de 0%, #ecdcb9 100%);
+      --dark-square: linear-gradient(180deg,#7f5a44 0%, #5b3f2d 100%);
+      --accent: #ff7b8a;
+      --bg: linear-gradient(180deg,#071024 0%, #06101a 60%);
+      --card-bg: rgba(255,255,255,0.02);
+      --glass: rgba(255,255,255,0.04);
+      --ui-radius: 12px;
+      --ui-padding: 12px;
+    }
+
+    /* Base styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: "Noto Sans Bengali", Inter, system-ui, -apple-system, sans-serif; background: var(--bg); color: #eef2ff; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+    .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 18px; }
+
+    /* পারমিশন মোডাল */
+    #permissionModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+    
+    .permission-box {
+      background: linear-gradient(135deg, #0b1220, #081021);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: modalSlideIn 0.5s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .permission-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      color: #ff7b8a;
+    }
+    
+    .permission-title {
+      font-size: 24px;
+      margin-bottom: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .permission-text {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      opacity: 0.9;
+    }
+    
+    .permission-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .permission-btn {
+      padding: 12px 25px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      flex: 1;
+      max-width: 150px;
+    }
+    
+    .permission-accept {
+      background: linear-gradient(90deg, #ffb86b, #ff7b8a);
+      color: #09101a;
+    }
+    
+    .permission-decline {
+      background: rgba(255, 255, 255, 0.05);
+      color: #eef2ff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .permission-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Panel */
+    .panel {
+      width: 100%;
+      max-width: 800px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding: 14px;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      display: none; /* Initially hidden until permission granted */
+    }
+    
+    /* উন্নত হেডার স্টাইল */
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    
+    .title {
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* টাইমার স্টাইল */
+    .timers {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .timerBox {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      min-width: 100px;
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .timerLabel {
+      font-size: 11px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .timerVal {
+      font-weight: 800;
+      font-size: 18px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    
+    .running {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45) inset, 0 6px 18px rgba(255,255,255,0.02);
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    /* কন্ট্রোলস স্টাইল */
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      background: rgba(255,255,255,0.01);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    
+    button, select {
+      background: var(--card-bg);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    button.primary {
+      background: linear-gradient(90deg,#ffb86b,#ff7b8a);
+      color: #09101a;
+      border: none;
+      font-weight: 700;
+    }
+    
+    button.primary:hover {
+      box-shadow: 0 4px 12px rgba(255,123,138,0.3);
+    }
+    
+    /* মোবাইল রেস্পন্সিভ */
+    @media (max-width: 640px) {
+      .header-top {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .title {
+        font-size: 16px;
+      }
+      
+      .timerBox {
+        min-width: 85px;
+        padding: 8px 10px;
+      }
+      
+      .timerVal {
+        font-size: 16px;
+      }
+      
+      .controls {
+        gap: 6px;
+        padding: 8px;
+      }
+      
+      button, select {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+      
+      .controls button {
+        flex: 1;
+        min-width: 70px;
+        text-align: center;
+      }
+      
+      .controls select {
+        flex: 1;
+        min-width: 90px;
+      }
+      
+      .permission-box {
+        padding: 20px;
+      }
+      
+      .permission-title {
+        font-size: 20px;
+      }
+      
+      .permission-text {
+        font-size: 14px;
+      }
+      
+      .permission-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .permission-btn {
+        max-width: 100%;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .timers {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .timerBox {
+        min-width: 45%;
+        padding: 10px;
+      }
+      
+      .controls {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 8px;
+        justify-content: flex-start;
+      }
+      
+      .controls::-webkit-scrollbar {
+        height: 4px;
+      }
+      
+      .controls::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+      }
+      
+      .controls button, .controls select {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+    }
+
+    /* Board layout */
+    .board-wrap {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    
+    @media (max-width: 980px) {
+      .board-wrap {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    /* Sidebars */
+    .side {
+      flex: 0 0 180px;
+      background: linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
+      padding: 12px;
+      border-radius: 12px;
+      min-width: 0;
+    }
+    
+    .side h4 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+    }
+    
+    .captured {
+      min-height: 120px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      overflow: auto;
+    }
+    
+    .small-piece {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      padding: 4px;
+      background: rgba(255,255,255,0.015);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Main board */
+    .board {
+      width: var(--board-size);
+      max-width: 100%;
+      aspect-ratio: 1/1;
+      height: auto;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      padding: 10px;
+      background: linear-gradient(180deg,#17202b,#0f1620);
+      box-shadow: inset 0 10px 36px rgba(0,0,0,0.6);
+      flex: 0 0 auto;
+    }
+
+    .grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(8,1fr);
+      grid-template-rows: repeat(8,1fr);
+      grid-auto-rows: 1fr;
+      gap: var(--cell-gap);
+      position: relative;
+      touch-action: none;
+    }
+
+    .cell {
+      position: relative;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      min-width: 0;
+      min-height: 0;
+    }
+    
+    .cell.light {
+      background: var(--light-square);
+      box-shadow: inset 0 -6px 10px rgba(255,255,255,0.06);
+    }
+    
+    .cell.dark {
+      background: var(--dark-square);
+      box-shadow: inset 0 -6px 10px rgba(0,0,0,0.45);
+    }
+
+    /* Coordinates */
+    .coords {
+      position: absolute;
+      left: 6px;
+      bottom: 6px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.42);
+      pointer-events: none;
+    }
+    
+    @media (max-width: 420px) {
+      .coords {
+        display: none;
+      }
+    }
+
+    /* Piece styling */
+    .piece {
+      width: 78%;
+      height: 78%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 140ms;
+      will-change: transform;
+    }
+    
+    .piece:active {
+      transform: scale(0.98);
+    }
+    
+    @media (max-width: 520px) {
+      .piece {
+        width: 86%;
+        height: 86%;
+      }
+      
+      .small-piece {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .piece .svgwrap {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .cell.highlight {
+      outline: 3px solid rgba(255,255,255,0.06);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55) inset;
+    }
+    
+    .cell.move-target::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.75);
+      opacity: 0.92;
+      transform: translateY(-2px);
+    }
+    
+    .cell.capture-target::after {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      right: 6px;
+      bottom: 6px;
+      border-radius: 8px;
+      border: 3px dashed rgba(255,100,100,0.92);
+    }
+    
+    .cell.check {
+      box-shadow: 0 0 0 4px rgba(255,50,50,0.26) inset;
+    }
+
+    .flying {
+      position: absolute;
+      will-change: transform,opacity;
+      pointer-events: none;
+    }
+
+    .meta {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .log {
+      max-height: 140px;
+      overflow: auto;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    /* Mobile captured pieces */
+    .captured-mobile {
+      display: none;
+      width: 100%;
+      gap: 8px;
+      margin: 8px 0;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .captured-mobile .label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    
+    .captured-mobile .row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    @media (max-width: 640px) {
+      .captured-mobile {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .captured-mobile .small-piece {
+        width: 34px;
+        height: 34px;
+        padding: 3px;
+        border-radius: 6px;
+      }
+      
+      .side {
+        display: none;
+      }
+    }
+
+    /* Modal styles */
+    .promoModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      z-index: 14000;
+    }
+    
+    .promoBox {
+      position: relative;
+      max-width: 420px;
+      width: 92%;
+      margin: auto;
+      background: linear-gradient(180deg,#0b1220,#081021);
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(2,6,23,0.7);
+      color: #fff;
+      z-index: 14001;
+      text-align: center;
+    }
+    
+    .promoGrid {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    #winnerModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;
+    }
+    
+    #winnerModal .modalBox {
+      position: relative;
+      max-width: 520px;
+      width: 92%;
+      margin: auto;
+      background: linear-gradient(180deg,#0b1220,#081021);
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(2,6,23,0.7);
+      color: #fff;
+      z-index: 12001;
+      text-align: center;
+    }
+
+    /* Focus styles for accessibility */
+    .promoBtn:focus, #playAgainBtn:focus, #closeModalBtn:focus {
+      outline: 3px solid rgba(255, 127, 140, 0.6);
+      outline-offset: 2px;
+    }
+    .btn{
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: #0b76ff;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-family: sans-serif;
+    box-shadow: 0 3px 8px rgba(11,118,255,0.25);
+  }
+  .btn:hover{ opacity: 0.95; transform: translateY(-1px); }
+
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="panel" role="region" aria-label="Chess game panel">
-    <div class="header">
-      <div style="display:flex;gap:14px;align-items:center">
-        <div class="title">কার্টুন দাবা — Responsive & Real Pieces</div>
-        <div class="timers" aria-hidden="false" title="Timers">
-          <div id="timerWhiteBox" class="timerBox running">
-            <div class="timerLabel">White</div>
-            <div id="timerWhite" class="timerVal">10:00</div>
-          </div>
-          <div id="timerBlackBox" class="timerBox">
-            <div class="timerLabel">Black</div>
-            <div id="timerBlack" class="timerVal">10:00</div>
-          </div>
-        </div>
-      </div>
+      <a href="https://ibgmv2.netlify.app/" class="btn" target="_blank" rel="noopener noreferrer">X</a>      </div>
 
-      <!-- Multiplayer controls (added) -->
-      <div class="multiplayer" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <div aria-live="polite" style="display:flex;gap:8px;align-items:center">
-          <label for="your-id" style="font-weight:600">Your ID:</label>
-          <div id="your-id" role="status" aria-atomic="true" style="min-width:140px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);">—</div>
-          <button id="copyIdBtn" title="Copy your ID">Copy</button>
-        </div>
-
-        <div style="display:flex;gap:6px;align-items:center">
-          <label for="peer-id-input">Connect to ID:</label>
-          <input id="peer-id-input" placeholder="Enter peer ID" aria-label="Peer ID input" style="min-width:180px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06)" />
-          <button id="connect-btn" class="primary">Connect</button>
-          <button id="disconnect-btn" style="display:none">Disconnect</button>
-        </div>
-
-        <div id="connStatus" style="margin-left:8px;min-width:220px" aria-live="polite">Status: Not connected</div>
-      </div>
-      <!-- end multiplayer controls -->
-
-      <div class="controls" role="toolbar" aria-label="game controls">
-        <button id="undo">Undo</button>
-        <button id="restart">Restart</button>
-        <button class="primary" id="toggleHints">Hints: ON</button>
-        <button id="toggleAI" class="compactBtn">AI: OFF</button>
-        <select id="aiColorSelect" aria-label="AI color select" style="display:inline-block">
-          <option value="b">AI কালো</option>
-          <option value="w">AI সাদা</option>
-        </select>
-        <button id="toggleSides" class="sideToggle">Show Sidebars</button>
-      </div>
-    </div>
-
-    <div class="board-wrap">
-      <div class="side" id="sideLeft" aria-hidden="false">
-        <h4>White captured</h4>
-        <div id="captured-white" class="captured" aria-label="white captures"></div>
-        <div style="height:8px"></div>
-        <div class="meta">
-          <div>Turn: <strong id="turnLabel">White</strong></div>
-          <div>Move#: <strong id="moveCount">1</strong></div>
-        </div>
-      </div>
-
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <!-- Captured mobile (top) - intended to show "Black captured" for the top player -->
-        <div id="capturedBottomMobile" class="captured-mobile" aria-hidden="true" aria-label="Bottom player captures (mobile)">
-          <div class="label">White captured (নীচের প্লেয়ারের নিচে)</div>
-          <div id="capturedBottomRow" class="row" style="justify-content:center"></div>
-        </div>
-
-        <div id="board" class="board" role="application" aria-label="Chess board">
-          <div id="grid" class="grid" aria-live="polite"></div>
-        </div>
-
-        <!-- Captured mobile (bottom) - intended to show "White captured" for the bottom player -->
-        
-        <div id="capturedTopMobile" class="captured-mobile" aria-hidden="true" aria-label="Top player captures (mobile)">
-          <div class="label">Black captured (উপরের প্লেয়ারের নিচে)</div>
-          <div id="capturedTopRow" class="row" style="justify-content:center"></div>
-        </div>
-
-        <!-- Captured strip (fallback / tablet) -->
-        <div id="capturedStrip" class="captured-strip" aria-hidden="false">
-          <div class="half" id="capturedStripLeft">
-            <div class="label">White captured</div>
-            <div id="capturedStripWhitePreview" style="display:flex;gap:6px;align-items:center"></div>
-            <div class="badge" id="capturedStripWhiteCount">0</div>
-          </div>
-          <div class="half" id="capturedStripRight" style="justify-content:flex-end">
-            <div class="label">Black captured</div>
-            <div id="capturedStripBlackPreview" style="display:flex;gap:6px;align-items:center"></div>
-            <div class="badge" id="capturedStripBlackCount">0</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="side" id="sideRight" aria-hidden="false">
-        <h4>Black captured</h4>
-        <div id="captured-black" class="captured" aria-label="black captures"></div>
-        <div style="height:8px"></div>
-        <div class="log" id="logArea" aria-live="polite"></div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- Winner modal - FIXED: aria-hidden and display sync -->
-<div id="winnerModal" aria-hidden="true" style="display: none;">
-  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,18,0.6),rgba(2,6,23,0.85));backdrop-filter:blur(6px);"></div>
-  <div class="modalBox">
-    <h2 id="winnerText" style="margin:6px 0 10px 0;font-size:20px;">অভিনন্দন!</h2>
-    <p id="winnerSub" style="margin:0 0 18px 0;opacity:0.9">খুব সুন্দর — আপনি জিতেছেন। একটা আরেকটি গেম খেলবেন?</p>
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button id="playAgainBtn" class="primary" style="padding:10px 16px;border-radius:10px;">আরেকটি গেম খেলুন</button>
-      <button id="closeModalBtn" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);">বাতিল</button>
+  <!-- পারমিশন মোডাল -->
+  <div id="permissionModal">
+    <div class="permission-box">
+      <div class="permission-icon">♟️</div>
+      <h2 class="permission-title">দাবা গেমে স্বাগতম</h2>
+      <p class="permission-text">আপনি কি আমাদের উন্নত মোবাইল দাবা গেমটি খেলতে চান? এই গেমে আপনি কম্পিউটারের বিরুদ্ধে খেলতে পারবেন, সময় নির্ধারণ করতে পারবেন এবং বাস্তবসম্মত দাবা গুটি উপভোগ করতে পারবেন।</p>
+      <div class="permission-buttons">
+        <button class="permission-btn permission-accept" id="acceptPermission">হ্যাঁ, খেলতে চাই</button>
+    <a href="https://ibgmv2.netlify.app/" class="btn" target="_blank" rel="noopener noreferrer">X</a>      </div>
     </div>
   </div>
-</div>
 
-<!-- Promotion modal -->
-<div id="promoModal" class="promoModal" role="dialog" aria-modal="true" style="display: none;">
-  <div class="promoBox">
-    <h3 id="promoTitle">Pawn promoted! কোন পিস নেবেন?</h3>
-    <div class="promoGrid">
-      <button class="promoBtn" data-piece="q">Queen</button>
-      <button class="promoBtn" data-piece="r">Rook</button>
-      <button class="promoBtn" data-piece="b">Bishop</button>
-      <button class="promoBtn" data-piece="n">Knight</button>
+  <div class="wrap">
+    <div class="panel" role="region" aria-label="Chess game panel">
+      <div class="header">
+        <div class="header-top">
+          <div class="title">উন্নত মোবাইল দাবা</div>
+          <div class="timers" aria-hidden="false" title="Timers">
+            <div id="timerWhiteBox" class="timerBox running">
+              <div class="timerLabel">সাদা</div>
+              <div id="timerWhite" class="timerVal">10:00</div>
+            </div>
+            <div id="timerBlackBox" class="timerBox">
+              <div class="timerLabel">কালো</div>
+              <div id="timerBlack" class="timerVal">10:00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls" role="toolbar" aria-label="game controls">
+          <button id="undo">পূর্বাবস্থা</button>
+          <button id="restart">পুনরায় শুরু</button>
+          <button class="primary" id="toggleHints">সহায়িকা: চালু</button>
+          <button id="toggleAI" class="compactBtn">AI: বন্ধ</button>
+          <select id="aiColorSelect" aria-label="AI color select" style="display:inline-block">
+            <option value="b">AI কালো</option>
+            <option value="w">AI সাদা</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="board-wrap">
+        <div class="side" id="sideLeft" aria-hidden="false">
+          <h4>সাদা গুটি নিয়েছে</h4>
+          <div id="captured-white" class="captured" aria-label="white captures"></div>
+          <div style="height:8px"></div>
+          <div class="meta">
+            <div>চাল: <strong id="turnLabel">সাদা</strong></div>
+            <div>চাল সংখ্যা: <strong id="moveCount">1</strong></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <!-- Captured mobile (top) -->
+          <div id="capturedTopMobile" class="captured-mobile" aria-hidden="true" aria-label="Top player captures (mobile)">
+            <div class="label">কালো গুটি নিয়েছে</div>
+            <div id="capturedTopRow" class="row" style="justify-content:center"></div>
+          </div>
+
+          <div id="board" class="board" role="application" aria-label="Chess board">
+            <div id="grid" class="grid" aria-live="polite"></div>
+          </div>
+
+          <!-- Captured mobile (bottom) -->
+          <div id="capturedBottomMobile" class="captured-mobile" aria-hidden="true" aria-label="Bottom player captures (mobile)">
+            <div class="label">সাদা গুটি নিয়েছে</div>
+            <div id="capturedBottomRow" class="row" style="justify-content:center"></div>
+          </div>
+        </div>
+
+        <div class="side" id="sideRight" aria-hidden="false">
+          <h4>কালো গুটি নিয়েছে</h4>
+          <div id="captured-black" class="captured" aria-label="black captures"></div>
+          <div style="height:8px"></div>
+          <div class="log" id="logArea" aria-live="polite"></div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- socket.io client - FIXED: Using CDN -->
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <!-- Winner modal -->
+  <div id="winnerModal" aria-hidden="true" style="display: none;">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,18,0.6),rgba(2,6,23,0.85));backdrop-filter:blur(6px);"></div>
+    <div class="modalBox">
+      <h2 id="winnerText" style="margin:6px 0 10px 0;font-size:20px;">অভিনন্দন!</h2>
+      <p id="winnerSub" style="margin:0 0 18px 0;opacity:0.9">খুব সুন্দর — আপনি জিতেছেন। একটা আরেকটি গেম খেলবেন?</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button id="playAgainBtn" class="primary" style="padding:10px 16px;border-radius:10px;">আরেকটি গেম খেলুন</button>
+        <button id="closeModalBtn" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);">বাতিল</button>
+      </div>
+    </div>
+  </div>
 
-<!-- main game script -->
-<script src="script.js"></script>
+  <!-- Promotion modal -->
+  <div id="promoModal" class="promoModal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="promoBox">
+      <h3 id="promoTitle">বোড়া উত্তীর্ণ! কোন গুটি নেবেন?</h3>
+      <div class="promoGrid">
+        <button class="promoBtn" data-piece="q">রাণী</button>
+        <button class="promoBtn" data-piece="r">নৌকা</button>
+        <button class="promoBtn" data-piece="b">হাতি</button>
+        <button class="promoBtn" data-piece="n">ঘোড়া</button>
+      </div>
+    </div>
+  </div>
 
+  <script>
+    // পারমিশন সিস্টেম
+    document.addEventListener('DOMContentLoaded', function() {
+      const permissionModal = document.getElementById('permissionModal');
+      const acceptBtn = document.getElementById('acceptPermission');
+      const declineBtn = document.getElementById('declinePermission');
+      const gamePanel = document.querySelector('.panel');
+      
+      // পারমিশন গ্রহণ করলে
+      acceptBtn.addEventListener('click', function() {
+        permissionModal.style.display = 'none';
+        gamePanel.style.display = 'block';
+        init(); // গেম শুরু করুন
+      });
+      
+      // পারমিশন প্রত্যাখ্যান করলে
+      declineBtn.addEventListener('click', function() {
+        permissionModal.style.display = 'none';
+        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:20px;padding:20px;text-align:center;"><h2>ধন্যবাদ!</h2><p>আপনি গেমটি খেলতে চাননি। আপনি যখনই চান তখন ফিরে আসুন!</p><button onclick="location.reload()" style="padding:10px 20px;background:#ff7b8a;border:none;border-radius:8px;color:white;cursor:pointer;">পুনরায় চেষ্টা করুন</button></div>';
+      });
+    });
+
+    /* ------------------ উন্নত মোবাইল দাবা গেম ------------------ */
+
+    /* গেম স্টেট */
+    const files = ['a','b','c','d','e','f','g','h'];
+    const ranks = [8,7,6,5,4,3,2,1];
+    let state = {
+      board: [], turn: 'w', moveCount: 1, selected: null,
+      history: [], captured: {w:[], b:[]},
+      movedFlags: { wR1:false,wR2:false,wK:false, bR1:false,bR2:false,bK:false },
+      hints: true, enPassant: null, halfmoveClock:0,
+      // টাইমার (মিলিসেকেন্ডে)
+      timers: { w: 10*60*1000, b: 10*60*1000 },
+      runningTimer: 'w', // কোন রঙের ঘড়ি চলছে
+      ai: null
+    };
+
+    /* গুটি মান (AI এবং সময় শেষ হওয়ার জন্য) */
+    const pieceValues = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+    const materialPoints = { p:1, n:3, b:3, r:5, q:9 };
+
+    /* টাইমার ইন্টারভাল কন্ট্রোল */
+    let timerIntervalId = null;
+    let lastTick = null;
+
+    /* ---------- সহায়ক ফাংশন: সময় ফরম্যাট mm:ss (ms থেকে) ---------- */
+    function formatTime(ms){
+      if(ms < 0) ms = 0;
+      const totalSec = Math.floor(ms/1000);
+      const mm = Math.floor(totalSec/60);
+      const ss = totalSec % 60;
+      return `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    }
+
+    /* একটি রঙের জন্য টাইমার শুরু করুন */
+    function startTimerFor(color){
+      state.runningTimer = color;
+      lastTick = Date.now();
+      updateTimerUI();
+      if(!timerIntervalId){
+        timerIntervalId = setInterval(tickTimers, 200);
+      }
+    }
+
+    /* সব টাইমার বন্ধ করুন (বিরতি) */
+    function stopTimers(){
+      state.runningTimer = null;
+      if(timerIntervalId){ clearInterval(timerIntervalId); timerIntervalId = null; }
+      updateTimerUI();
+    }
+
+    /* টাইকার হ্যান্ডলার */
+    function tickTimers(){
+      if(!state.runningTimer) { lastTick = Date.now(); return; }
+      const now = Date.now();
+      const delta = now - (lastTick || now);
+      lastTick = now;
+      state.timers[state.runningTimer] -= delta;
+      if(state.timers[state.runningTimer] <= 0){
+        state.timers[state.runningTimer] = 0;
+        updateTimerUI();
+        handleTimeExpired(state.runningTimer);
+        return;
+      }
+      updateTimerUI();
+    }
+
+    /* টাইমার UI আপডেট করুন */
+    function updateTimerUI(){
+      const wEl = document.getElementById('timerWhite');
+      const bEl = document.getElementById('timerBlack');
+      const wBox = document.getElementById('timerWhiteBox');
+      const bBox = document.getElementById('timerBlackBox');
+      if(wEl) wEl.textContent = formatTime(state.timers.w);
+      if(bEl) bEl.textContent = formatTime(state.timers.b);
+      if(wBox) {
+        if(state.runningTimer === 'w') wBox.classList.add('running'); else wBox.classList.remove('running');
+      }
+      if(bBox) {
+        if(state.runningTimer === 'b') bBox.classList.add('running'); else bBox.classList.remove('running');
+      }
+    }
+
+    /* সময় শেষ হলে: গুটির মান দিয়ে বিজয়ী নির্ধারণ করুন */
+    function handleTimeExpired(expiredColor){
+      stopTimers();
+      const mat = calculateMaterialScores();
+      const other = expiredColor === 'w' ? 'b' : 'w';
+      const otherScore = mat[other];
+      const expiredScore = mat[expiredColor];
+      const winnerText = (otherScore > expiredScore) ? (other === 'w' ? 'সাদা' : 'কালো') : (otherScore < expiredScore ? (expiredColor === 'w' ? 'সাদা':'কালো') : 'ড্র');
+      let reasonText = `সময় শেষ — ${expiredColor==='w' ? 'সাদা' : 'কালো'} এর সময় শেষ।`;
+      if(winnerText === 'ড্র') reasonText = reasonText + ' গুটির মান সমান — ড্র।';
+      else reasonText = reasonText + ` গুটির মান ${winnerText==='সাদা' ? mat['w'] : mat['b']} vs ${winnerText==='সাদা' ? mat['b'] : mat['w']} — ${winnerText} জিতেছে।`;
+      if(winnerText === 'ড্র') showWinnerModal('ড্র', reasonText);
+      else showWinnerModal(winnerText, reasonText);
+    }
+
+    /* গুটির মান গণনা করুন */
+    function calculateMaterialScores(){
+      const res = { w:0, b:0 };
+      for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+        const p = state.board[r][c];
+        if(!p) continue;
+        const val = materialPoints[p.t] || 0;
+        if(p.c === 'w') res.w += val; else res.b += val;
+      }
+      return res;
+    }
+
+    /* ---------- রেন্ডারিং ---------- */
+    const gridEl = document.getElementById('grid');
+    const turnLabel = document.getElementById('turnLabel');
+    const moveCountEl = document.getElementById('moveCount');
+    const logArea = document.getElementById('logArea');
+    const capturedWhite = document.getElementById('captured-white');
+    const capturedBlack = document.getElementById('captured-black');
+
+    /* মোবাইল ক্যাপচার কন্টেইনার */
+    const capturedTopRow = document.getElementById('capturedTopRow');
+    const capturedBottomRow = document.getElementById('capturedBottomRow');
+
+    function makeCellId(r,c){ return `c${r}${c}` }
+
+    function render(){
+      gridEl.innerHTML='';
+      for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+          const cell = document.createElement('div');
+          cell.className = 'cell ' + (((r+c)%2===0)?'light':'dark');
+          cell.id = makeCellId(r,c);
+          cell.dataset.r = r; cell.dataset.c = c;
+          if(c===0 || r===7){
+            const coord = document.createElement('div'); coord.className='coords';
+            const file = files[c]; const rank = ranks[r];
+            coord.textContent = (r===7?file+' ':'') + (c===0?rank:'');
+            cell.appendChild(coord);
+          }
+          gridEl.appendChild(cell);
+          cell.addEventListener('click', onCellClick, {passive:true});
+          cell.tabIndex = 0;
+          cell.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') onCellClick({currentTarget:cell}); });
+        }
+      }
+      for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+        const piece = state.board[r][c];
+        if(piece){ placePiece(r,c,piece); }
+      }
+      updateCapturedUI();
+      turnLabel.textContent = state.turn==='w'? 'সাদা':'কালো';
+      moveCountEl.textContent = state.moveCount;
+      clearKingCheckMarks();
+      const kpos = findKing(state.turn);
+      if(kpos){ const enemy = (state.turn==='w')?'b':'w'; if(isSquareAttacked(kpos.r,kpos.c,enemy)){ const cell = document.getElementById(makeCellId(kpos.r,kpos.c)); if(cell) cell.classList.add('check'); }}
+      updateTimerUI();
+    }
+
+    function placePiece(r,c,piece){
+      const cell = document.getElementById(makeCellId(r,c));
+      if(!cell) return;
+      const div = document.createElement('div');
+      div.className='piece';
+      div.draggable=false;
+      div.dataset.r=r; div.dataset.c=c;
+      div.dataset.t=piece.t; div.dataset.colo=piece.c;
+      div.innerHTML = pieceSVG(piece.t,piece.c);
+      cell.appendChild(div);
+    }
+
+    /* ---------- রিয়েলিস্টিক স্টন্টন-স্টাইল SVG ---------- */
+    function pieceSVG(type,color){
+      const light = getComputedStyle(document.documentElement).getPropertyValue('--light-piece').trim() || '#f4ecd8';
+      const dark = getComputedStyle(document.documentElement).getPropertyValue('--dark-piece').trim() || '#2f2216';
+      const fill = color==='w'? light : dark;
+      const stroke = color==='w'? '#333' : '#f3efe6';
+
+      const common = `class="svgwrap" viewBox="0 0 64 64" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"`;
+      const svgs = {
+        p:`<svg ${common}><g fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"><path d="M32 12c-5 0-9 4-9 9 0 3 2 6 5 7v6c-6 2-10 6-10 9h28c0-3-4-7-10-9v-6c3-1 5-4 5-7 0-5-4-9-9-9z"/><path d="M16 52h32v2H16z"/></g></svg>`,
+        r:`<svg ${common}><g fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"><rect x="14" y="8" width="36" height="8" rx="1"/><path d="M18 16v6h28v-6"/><path d="M18 22c6 4 12 6 14 18 2-12 8-14 14-18"/><rect x="18" y="40" width="28" height="8" rx="3"/></g></svg>`,
+        n:`<svg ${common}><g fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"><path d="M22 44c6 4 18 4 22 0 0-6-6-10-10-12 0-6 4-10 2-14-3-6-14-6-18 2-3 6 2 16 4 22z"/><circle cx="36" cy="20" r="2.2" fill="${stroke}"/></g></svg>`,
+        b:`<svg ${common}><g fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"><path d="M32 12c-6 6-10 10-10 18 0 6 4 8 10 12 6-4 10-6 10-12 0-8-4-12-10-18z"/><path d="M22 46h20v2H22z"/><path d="M28 36c4 1 8 1 12 0"/></g></svg>`,
+        q:`<svg ${common}><g fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"><path d="M16 12h32v6H16z"/><path d="M12 22c10 6 6 16 20 22 14-6 10-16 20-22"/><path d="M18 44h28v4H18z"/><circle cx="24" cy="16" r="2.4" fill="${stroke}"/><circle cx="40" cy="16" r="2.4" fill="${stroke}"/></g></svg>`,
+        k:`<svg ${common}><g fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"><path d="M32 8v10"/><rect x="28" y="4" width="8" height="6" rx="1"/><path d="M20 30c8-6 16-6 24 0-8 4-16 6-24 0z"/><path d="M18 44h28v4H18z"/></g></svg>`
+      };
+      return svgs[type] || svgs['p'];
+    }
+
+    /* ---------- ইন্টারেকশন ---------- */
+    function onCellClick(e){
+      const cell = e.currentTarget;
+      const r = +cell.dataset.r; const c = +cell.dataset.c;
+      const piece = state.board[r][c];
+
+      if(state.selected){
+        const sel = state.selected;
+        const moves = legalMovesFor(sel.r,sel.c,sel.piece,true);
+        const valid = moves.some(m=>m.r===r && m.c===c && !m.invalid);
+        if(valid){ moveSelectedTo(r,c); return; }
+      }
+      if(piece && piece.c===state.turn){
+        clearHighlights();
+        state.selected = {r,c,piece};
+        const moves = legalMovesFor(r,c,piece,true);
+        highlightCells(moves);
+        return;
+      }
+      clearHighlights(); state.selected=null;
+    }
+
+    function clearHighlights(){
+      document.querySelectorAll('.cell').forEach(x=>{ x.classList.remove('highlight','move-target','capture-target') });
+    }
+
+    function highlightCells(moves){
+      moves.forEach(m=>{
+        const id = makeCellId(m.r,m.c);
+        const cell = document.getElementById(id);
+        if(!cell) return;
+        cell.classList.add('highlight');
+        if(m.capture) cell.classList.add('capture-target'); else cell.classList.add('move-target');
+      })
+    }
+
+    /* ---------- চাল নির্বাহ ---------- */
+    function moveSelectedTo(r,c){
+      const sel = state.selected; if(!sel) return; const fromR=sel.r, fromC=sel.c;
+      const moves = legalMovesFor(fromR,fromC,sel.piece,true);
+      const move = moves.find(m=>m.r===r && m.c===c);
+      if(!move) { clearHighlights(); state.selected=null; return; }
+
+      state.history.push(JSON.parse(JSON.stringify({
+        board:state.board,
+        turn:state.turn,
+        movedFlags:state.movedFlags,
+        captured:state.captured,
+        moveCount:state.moveCount,
+        enPassant:state.enPassant,
+        halfmoveClock:state.halfmoveClock,
+        timers: state.timers,
+        runningTimer: state.runningTimer
+      })));
+
+      const target = state.board[r][c];
+      if(move.enPassant){
+        const takenR = fromR; const takenC = c;
+        const taken = state.board[takenR][takenC];
+        if(taken){ state.captured[taken.c].push(taken); state.board[takenR][takenC]=null; }
+      }
+
+      state.board[r][c]=sel.piece;
+      state.board[fromR][fromC]=null;
+      if(sel.piece.t==='p' || target) state.halfmoveClock=0; else state.halfmoveClock++;
+      if(sel.piece.t==='k'){
+        if(sel.piece.c==='w') state.movedFlags.wK=true; else state.movedFlags.bK=true;
+        if(move.castle){
+          if(move.castle==='K'){
+            if(sel.piece.c==='w'){ state.board[7][5]=state.board[7][7]; state.board[7][7]=null; state.movedFlags.wR2=true; }
+            else { state.board[0][5]=state.board[0][7]; state.board[0][7]=null; state.movedFlags.bR2=true; }
+          } else {
+            if(sel.piece.c==='w'){ state.board[7][3]=state.board[7][0]; state.board[7][0]=null; state.movedFlags.wR1=true; }
+            else { state.board[0][3]=state.board[0][0]; state.board[0][0]=null; state.movedFlags.bR1=true; }
+          }
+        }
+      }
+      if(sel.piece.t==='r'){
+        if(sel.piece.c==='w'){ if(fromR===7 && fromC===0) state.movedFlags.wR1=true; if(fromR===7 && fromC===7) state.movedFlags.wR2=true; }
+        else { if(fromR===0 && fromC===0) state.movedFlags.bR1=true; if(fromR===0 && fromC===7) state.movedFlags.bR2=true; }
+      }
+
+      if(target){
+        handleCaptureAnimation(r,c,target);
+        state.captured[ (target.c==='w')? 'w' : 'b' ].push(target);
+        log(`${sel.piece.c==='w'?'সাদা':'কালো'} ${nameFor(sel.piece.t)} ${nameFor(target.t)} কে ${files[c]}${ranks[r]} তে নিয়েছে`);
+      } else if(move.enPassant){
+        log(`${sel.piece.c==='w'?'সাদা':'কালো'} বোড়া ${files[c]}${ranks[r]} তে এন পাসান নিয়েছে`);
+      } else {
+        log(`${sel.piece.c==='w'?'সাদা':'কালো'} ${nameFor(sel.piece.t)} ${files[c]}${ranks[r]} তে চলে গেছে`);
+      }
+
+      if(sel.piece.t==='p' && Math.abs(r-fromR)===2){
+        state.enPassant = { r: (r+fromR)/2, c: c };
+      } else {
+        state.enPassant = null;
+      }
+
+      // উত্তীর্ণ
+      if(sel.piece.t==='p' && (r===0 || r===7)){
+        if(state.ai && state.ai.enabled && state.turn===state.ai.color){
+          sel.piece.t='q'; log(`বোড়া ${files[c]}${ranks[r]} তে রাণীতে উত্তীর্ণ হয়েছে`);
+        } else {
+          showPromotion(sel.piece, fromR, fromC, r, c);
+          state.turn = state.turn==='w'? 'b':'w';
+          state.moveCount += (state.turn==='w'?1:0);
+          state.selected = null; clearHighlights(); render();
+          startTimerFor(state.turn);
+          return;
+        }
+      }
+
+      const enemy = state.turn==='w'? 'b':'w';
+      state.turn = state.turn==='w'? 'b':'w';
+      state.moveCount += (state.turn==='w'?1:0);
+      state.selected = null; clearHighlights();
+      render();
+
+      startTimerFor(state.turn);
+
+      const hasMoves = anyLegalMoves(state.turn);
+      if(!hasMoves){
+        const kingPos = findKing(state.turn);
+        const inCheck = kingPos? isSquareAttacked(kingPos.r,kingPos.c, (state.turn==='w'?'b':'w')) : false;
+        if(inCheck){ stopTimers(); showWinnerModal((state.turn==='w')? 'কালো':'সাদা'); log('কিস্তিমাত'); }
+        else { stopTimers(); showWinnerModal('ড্র'); log('স্টেলমেট (ড্র)'); }
+      } else {
+        const kp = findKing(state.turn);
+        if(kp && isSquareAttacked(kp.r,kp.c, (state.turn==='w'?'b':'w'))){ log((state.turn==='w'?'সাদা':'কালো') + ' কিস্তিতে আছে'); }
+      }
+    }
+
+    /* ---------- উত্তীর্ণ মোডাল ---------- */
+    function showPromotion(piece, fromR, fromC, toR, toC){
+      const modal = document.getElementById('promoModal');
+      modal.style.display='flex';
+      modal.setAttribute('aria-hidden', 'false');
+      
+      const title = document.getElementById('promoTitle');
+      title.textContent = 'বোড়া উত্তীর্ণ! কোন গুটি নিতে চান?';
+      
+      document.querySelectorAll('.promoBtn').forEach(b=>{
+        b.onclick = ()=>{
+          const p = b.dataset.piece;
+          piece.t = p; 
+          modal.style.display='none';
+          modal.setAttribute('aria-hidden', 'true');
+          
+          log(`বোড়া ${nameFor(p)} তে উত্তীর্ণ হয়েছে ${files[toC]}${ranks[toR]} তে`);
+          render();
+
+          const hasMoves = anyLegalMoves(state.turn);
+          if(!hasMoves){
+            const kingPos = findKing(state.turn);
+            const inCheck = kingPos? isSquareAttacked(kingPos.r,kingPos.c, (state.turn==='w'?'b':'w')) : false;
+            if(inCheck){ stopTimers(); showWinnerModal((state.turn==='w')? 'কালো':'সাদা'); log('কিস্তিমাত'); }
+            else { stopTimers(); showWinnerModal('ড্র'); log('স্টেলমেট (ড্র)'); }
+          }
+        }
+      });
+    }
+
+    /* ---------- চাল জেনারেশন এবং আক্রমণ সনাক্তকরণ ---------- */
+    function legalMovesFor(r,c,piece,forUI=false){
+      const pseudo = pseudoLegalMoves(r,c,piece);
+      const legal = [];
+      for(const m of pseudo){
+        const snap = snapshotState();
+        const target = snap.board[m.r][m.c];
+        if(m.enPassant){ const takenR = r; const takenC = m.c; snap.board[takenR][takenC]=null; }
+        snap.board[m.r][m.c]= {...snap.board[r][c] }; snap.board[r][c]=null;
+        if(m.castle){ if(m.castle==='K'){ if(piece.c==='w'){ snap.board[7][5]=snap.board[7][7]; snap.board[7][7]=null; } else { snap.board[0][5]=snap.board[0][7]; snap.board[0][7]=null; } } else { if(piece.c==='w'){ snap.board[7][3]=snap.board[7][0]; snap.board[7][0]=null; } else { snap.board[0][3]=snap.board[0][0]; snap.board[0][0]=null; } } }
+        const kingPos = findKingFor(snap, piece.c);
+        if(!kingPos) continue;
+        const opponent = piece.c==='w'? 'b':'w';
+        if(isSquareAttackedFor(snap, kingPos.r, kingPos.c, opponent)){
+        } else {
+          legal.push(m);
+        }
+      }
+      return legal;
+    }
+
+    function pseudoLegalMoves(r,c,piece){
+      const moves=[];
+      const dir = piece.c==='w'? -1:1;
+      const inBoard = (rr,cc)=> rr>=0 && rr<8 && cc>=0 && cc<8;
+      if(piece.t==='p'){
+        const fr=r+dir; if(inBoard(fr,c) && !state.board[fr][c]) moves.push({r:fr,c});
+        const startRow = piece.c==='w'?6:1; const fr2=r+dir*2;
+        if(r===startRow && inBoard(fr2,c) && !state.board[fr][c] && !state.board[fr2][c]) moves.push({r:fr2,c});
+        for(const dc of [-1,1]){ const rr=r+dir, cc=c+dc; if(inBoard(rr,cc) && state.board[rr][cc] && state.board[rr][cc].c!==piece.c) moves.push({r:rr,c:cc,capture:true}); }
+        if(state.enPassant){ if(Math.abs(state.enPassant.c - c)===1 && state.enPassant.r===r+dir){ moves.push({r:state.enPassant.r,c:state.enPassant.c,enPassant:true,capture:true}); } }
+      }
+      if(piece.t==='n'){
+        const deltas=[[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+        deltas.forEach(d=>{ const rr=r+d[0], cc=c+d[1]; if(inBoard(rr,cc)){ const t=state.board[rr][cc]; if(!t) moves.push({r:rr,c:cc}); else if(t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}); }});
+      }
+      if(piece.t==='b' || piece.t==='q' || piece.t==='r'){
+        const dirs = [];
+        if(piece.t==='b' || piece.t==='q') dirs.push([1,1],[1,-1],[-1,1],[-1,-1]);
+        if(piece.t==='r' || piece.t==='q') dirs.push([1,0],[-1,0],[0,1],[0,-1]);
+        dirs.forEach(d=>{
+          let rr=r+d[0], cc=c+d[1];
+          while(inBoard(rr,cc)){
+            const t = state.board[rr][cc];
+            if(!t) moves.push({r:rr,c:cc}); else { if(t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}); break; }
+            rr+=d[0]; cc+=d[1];
+          }
+        })
+      }
+      if(piece.t==='k'){
+        for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0 && dc===0) continue; const rr=r+dr, cc=c+dc; if(inBoard(rr,cc)){ const t=state.board[rr][cc]; if(!t) moves.push({r:rr,c:cc}); else if(t.c!==piece.c) moves.push({r:rr,c:cc,capture:true}); }}
+        if(piece.c==='w' && r===7 && c===4 && !state.movedFlags.wK){
+          if(!state.movedFlags.wR2 && !state.board[7][5] && !state.board[7][6]) moves.push({r:7,c:6,castle:'K'});
+          if(!state.movedFlags.wR1 && !state.board[7][3] && !state.board[7][2] && !state.board[7][1]) moves.push({r:7,c:2,castle:'Q'});
+        }
+        if(piece.c==='b' && r===0 && c===4 && !state.movedFlags.bK){
+          if(!state.movedFlags.bR2 && !state.board[0][5] && !state.board[0][6]) moves.push({r:0,c:6,castle:'K'});
+          if(!state.movedFlags.bR1 && !state.board[0][3] && !state.board[0][2] && !state.board[0][1]) moves.push({r:0,c:2,castle:'Q'});
+        }
+      }
+      return moves;
+    }
+
+    function isSquareAttacked(r,c,byColor){ return isSquareAttackedFor(state,r,c,byColor); }
+    function isSquareAttackedFor(st, r, c, byColor){
+      const inBoard = (rr,cc)=> rr>=0 && rr<8 && cc>=0 && cc<8;
+      const pawnDir = (byColor==='w')? -1:1;
+      for(const dc of [-1,1]){ const rr = r - pawnDir; const cc = c + dc; if(inBoard(rr,cc) && st.board[rr][cc] && st.board[rr][cc].t==='p' && st.board[rr][cc].c===byColor) return true; }
+      const nd = [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+      for(const d of nd){ const rr=r+d[0], cc=c+d[1]; if(inBoard(rr,cc) && st.board[rr][cc] && st.board[rr][cc].t==='n' && st.board[rr][cc].c===byColor) return true; }
+      const diags = [[1,1],[1,-1],[-1,1],[-1,-1]];
+      for(const d of diags){ let rr=r+d[0], cc=c+d[1]; while(inBoard(rr,cc)){ const p = st.board[rr][cc]; if(p){ if(p.c===byColor && (p.t==='b' || p.t==='q')) return true; else break; } rr+=d[0]; cc+=d[1]; } }
+      const strs = [[1,0],[-1,0],[0,1],[0,-1]];
+      for(const d of strs){ let rr=r+d[0], cc=c+d[1]; while(inBoard(rr,cc)){ const p = st.board[rr][cc]; if(p){ if(p.c===byColor && (p.t==='r' || p.t==='q')) return true; else break; } rr+=d[0]; cc+=d[1]; } }
+      for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(dr===0 && dc===0) continue; const rr=r+dr, cc=c+dc; if(inBoard(rr,cc) && st.board[rr][cc] && st.board[rr][cc].t==='k' && st.board[rr][cc].c===byColor) return true; }
+      return false;
+    }
+
+    function snapshotState(){
+      return { board: JSON.parse(JSON.stringify(state.board)), movedFlags: JSON.parse(JSON.stringify(state.movedFlags)), enPassant: state.enPassant };
+    }
+    function isSquareAttackedForSnap(snap, r,c, byColor){ return isSquareAttackedFor({board:snap.board}, r,c, byColor); }
+
+    function findKing(color){ return findKingFor(state, color); }
+    function findKingFor(st, color){ for(let r=0;r<8;r++) for(let c=0;c<8;c++){ const p = st.board[r][c]; if(p && p.t==='k' && p.c===color) return {r,c}; } return null; }
+
+    function anyLegalMoves(color){
+      for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+        const p = state.board[r][c]; if(!p || p.c!==color) continue;
+        const moves = legalMovesFor(r,c,p);
+        if(moves.length>0) return true;
+      }
+      return false;
+    }
+
+    /* ---------- ক্যাপচার অ্যানিমেশন ---------- */
+    function handleCaptureAnimation(r,c,target){
+      const cell = document.getElementById(makeCellId(r,c));
+      const pieceEl = cell.querySelector('.piece');
+      if(!pieceEl) return;
+      const floating = pieceEl.cloneNode(true);
+      floating.style.position='absolute';
+      const gridRect = gridEl.getBoundingClientRect();
+      const fromRect = pieceEl.getBoundingClientRect();
+      floating.style.left = (fromRect.left - gridRect.left) + 'px';
+      floating.style.top = (fromRect.top - gridRect.top) + 'px';
+      floating.style.width = pieceEl.offsetWidth+'px';
+      floating.style.height = pieceEl.offsetHeight+'px';
+      floating.style.zIndex = 9999;
+      floating.classList.add('flying');
+      gridEl.appendChild(floating);
+
+      const dest = (target.c==='w')? capturedWhite : capturedBlack;
+      const destRect = dest.getBoundingClientRect();
+      const tx = (destRect.left + 8) - fromRect.left;
+      const ty = (destRect.top + 8) - fromRect.top;
+      floating.animate([
+        { transform: 'translate(0,0) scale(1)', opacity:1 },
+        { transform: `translate(${tx*0.6}px, ${ty*0.6}px) scale(1.04)`, opacity:1 },
+        { transform: `translate(${tx}px, ${ty}px) scale(0.6)`, opacity:0.95 }
+      ], {duration:680, easing:'cubic-bezier(.2,.9,.2,1)'});
+
+      setTimeout(()=>{
+        const small = document.createElement('div'); small.className='small-piece'; small.innerHTML = pieceSVG(target.t,target.c);
+        dest.appendChild(small);
+        floating.remove();
+        updateCapturedUI();
+      },700);
+    }
+
+    /* ---------- ইউটিলিটি ফাংশন ---------- */
+    function nameFor(t){ return {'p':'বোড়া','n':'ঘোড়া','b':'হাতি','r':'নৌকা','q':'রাণী','k':'রাজা'}[t] }
+    function log(msg){ const el = document.createElement('div'); el.textContent = msg; logArea.prepend(el); }
+
+    /* ক্যাপচার্ড UI আপডেট করুন */
+    function updateCapturedUI(){
+      capturedWhite.innerHTML=''; capturedBlack.innerHTML='';
+      state.captured.w.forEach(p=>{
+        const d=document.createElement('div'); d.className='small-piece'; d.innerHTML=pieceSVG(p.t,p.c); capturedWhite.appendChild(d);
+      });
+      state.captured.b.forEach(p=>{
+        const d=document.createElement('div'); d.className='small-piece'; d.innerHTML=pieceSVG(p.t,p.c); capturedBlack.appendChild(d);
+      });
+
+      if(capturedTopRow && capturedBottomRow){
+        capturedTopRow.innerHTML = '';
+        capturedBottomRow.innerHTML = '';
+
+        state.captured.b.slice(-6).forEach(p=>{
+          const d = document.createElement('div'); d.className='small-piece'; d.style.width='34px'; d.style.height='34px'; d.innerHTML = pieceSVG(p.t,p.c);
+          capturedTopRow.appendChild(d);
+        });
+
+        state.captured.w.slice(-6).forEach(p=>{
+          const d = document.createElement('div'); d.className='small-piece'; d.style.width='34px'; d.style.height='34px'; d.innerHTML = pieceSVG(p.t,p.c);
+          capturedBottomRow.appendChild(d);
+        });
+
+        const smallScreen = window.matchMedia && window.matchMedia('(max-width:640px)').matches;
+        document.getElementById('capturedTopMobile').setAttribute('aria-hidden', !smallScreen);
+        document.getElementById('capturedBottomMobile').setAttribute('aria-hidden', !smallScreen);
+      }
+    }
+
+    function clearKingCheckMarks(){ document.querySelectorAll('.cell').forEach(x=> x.classList.remove('check')); }
+
+    /* ---------- কন্ট্রোল ---------- */
+    document.getElementById('restart').addEventListener('click', ()=>{ init(); log('গেম পুনরায় শুরু হয়েছে'); });
+    document.getElementById('undo').addEventListener('click', ()=>{ 
+      if(state.history.length) { 
+        const prev = state.history.pop(); 
+        state.board = prev.board; state.turn = prev.turn; state.movedFlags = prev.movedFlags; state.captured = prev.captured; state.moveCount = prev.moveCount; state.enPassant = prev.enPassant; state.halfmoveClock = prev.halfmoveClock || 0; 
+        if(prev.timers){ state.timers = prev.timers; } 
+        if(prev.runningTimer){ state.runningTimer = prev.runningTimer; } else state.runningTimer = null;
+        render(); log('পূর্বাবস্থায় ফিরে গেছে'); 
+        if(state.runningTimer) startTimerFor(state.runningTimer); else startTimerFor(state.turn);
+      } 
+    });
+    const hintsBtn = document.getElementById('toggleHints'); hintsBtn.addEventListener('click', ()=>{ state.hints = !state.hints; hintsBtn.textContent = 'সহায়িকা: ' + (state.hints? 'চালু':'বন্ধ'); });
+
+    /* ---------- AI প্রতিপক্ষ ---------- */
+    state.ai = { enabled:false, color:'b', thinking:false };
+
+    const aiBtn = document.getElementById('toggleAI');
+    const aiColorSelect = document.getElementById('aiColorSelect');
+    aiBtn.addEventListener('click', ()=>{
+      state.ai.enabled = !state.ai.enabled;
+      aiBtn.textContent = 'AI: ' + (state.ai.enabled? 'চালু':'বন্ধ');
+      state.ai.color = aiColorSelect.value;
+      if(state.ai.enabled && state.turn===state.ai.color) { /* AI এর চাল দেওয়ার জন্য পর্যায়ক্রমিক পরীক্ষা */ }
+    });
+    aiColorSelect.addEventListener('change', ()=>{ state.ai.color = aiColorSelect.value; });
+
+    function aiMakeMove(){
+      if(!state.ai.enabled) return; if(state.ai.thinking) return; state.ai.thinking = true;
+      const color = state.ai.color;
+      const candidates = [];
+      for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+        const piece = state.board[r][c]; if(!piece || piece.c!==color) continue;
+        const moves = legalMovesFor(r,c,piece,true);
+        for(const m of moves){
+          const target = state.board[m.r][m.c];
+          const capVal = target? pieceValues[target.t] || 0 : 0;
+          candidates.push({fromR:r,fromC:c,toR:m.r,toC:m.c,captureValue:capVal,move: m, pieceType: piece.t});
+        }
+      }
+      if(candidates.length===0){ state.ai.thinking=false; return; }
+
+      let chosen;
+      const caps = candidates.filter(x=>x.captureValue>0);
+      if(caps.length>0){
+        caps.sort((a,b)=>{ if(b.captureValue!==a.captureValue) return b.captureValue-a.captureValue; return (pieceValues[a.pieceType] || 0) - (pieceValues[b.pieceType] || 0); });
+        chosen = caps[0];
+      } else {
+        candidates.sort((a,b)=>{ return (pieceValues[b.pieceType]||0) - (pieceValues[a.pieceType]||0); });
+        const topN = Math.max(1, Math.floor(candidates.length * 0.25));
+        const pool = candidates.slice(0, topN);
+        chosen = pool[Math.floor(Math.random()*pool.length)];
+      }
+
+      setTimeout(()=>{
+        state.selected = { r: chosen.fromR, c: chosen.fromC, piece: state.board[chosen.fromR][chosen.fromC] };
+        try{ moveSelectedTo(chosen.toR, chosen.toC); } catch(e){ console.error('AI চাল ব্যর্থ', e); }
+        state.ai.thinking = false;
+      }, 420 + Math.floor(Math.random()*420));
+    }
+
+    /* AI এর চাল দেওয়ার জন্য পর্যায়ক্রমিক পরীক্ষা */
+    setInterval(()=>{
+      if(state.ai.enabled && state.turn===state.ai.color && !state.ai.thinking){ aiMakeMove(); }
+    }, 650);
+
+    /* ---------- ইনিশিয়ালাইজেশন ---------- */
+    function initialBoard(){
+      const empty = Array(8).fill(null).map(()=>Array(8).fill(null));
+      const p = (t,c)=>({t,c});
+      const back = ['r','n','b','q','k','b','n','r'];
+      for(let i=0;i<8;i++){ empty[1][i]=p('p','b'); empty[6][i]=p('p','w'); }
+      for(let i=0;i<8;i++){ empty[0][i]=p(back[i],'b'); empty[7][i]=p(back[i],'w'); }
+      return empty;
+    }
+
+    function init(){ 
+      state.board = initialBoard(); state.turn='w'; state.moveCount=1; state.selected=null; state.history=[]; state.captured={w:[],b:[]}; state.movedFlags={wR1:false,wR2:false,wK:false,bR1:false,bR2:false,bK:false}; state.enPassant=null; state.halfmoveClock=0;
+      state.timers = { w: 10*60*1000, b: 10*60*1000 };
+      state.runningTimer = 'w';
+      stopTimers();
+      startTimerFor('w');
+      logArea.innerHTML=''; render(); 
+    }
+
+    /* ---------- বিজয়ী মোডাল হ্যান্ডলিং ---------- */
+    function showWinnerModal(winner, reason = null){
+      const modal = document.getElementById('winnerModal');
+      const text = document.getElementById('winnerText');
+      const sub = document.getElementById('winnerSub');
+      
+      if(winner==='ড্র'){ 
+        text.textContent = 'ড্র'; 
+        sub.textContent = reason || 'গেম ড্র হয়েছে। আবার চেষ্টা করবেন?'; 
+      } else { 
+        text.textContent = 'অভিনন্দন — ' + (winner==='সাদা'? 'সাদা':'কালো') + ' জিতেছে!'; 
+        sub.textContent = reason || 'আপনি কি আরেকটি গেম খেলতে চান?'; 
+      }
+      
+      modal.style.display = 'flex'; 
+      modal.setAttribute('aria-hidden','false');
+      stopTimers();
+
+      setTimeout(() => {
+        document.getElementById('playAgainBtn').focus();
+      }, 100);
+
+      document.getElementById('playAgainBtn').onclick = ()=>{ 
+        modal.style.display='none'; 
+        modal.setAttribute('aria-hidden','true'); 
+        init(); 
+      };
+      
+      document.getElementById('closeModalBtn').onclick = ()=>{ 
+        modal.style.display='none'; 
+        modal.setAttribute('aria-hidden','true'); 
+      };
+    }
+
+    /* ---------- অ্যাক্সেসিবিলিটি ---------- */
+    document.addEventListener('keydown',(e)=>{ 
+      if(e.key==='Escape'){ 
+        const pm = document.getElementById('promoModal'); 
+        if(pm.style.display==='flex'){ 
+          pm.style.display='none'; 
+          pm.setAttribute('aria-hidden','true');
+        } 
+        const wm = document.getElementById('winnerModal'); 
+        if(wm.style.display==='flex'){ 
+          wm.style.display='none'; 
+          wm.setAttribute('aria-hidden','true');
+        } 
+      } 
+    });
+  </script>
 </body>
 </html>
